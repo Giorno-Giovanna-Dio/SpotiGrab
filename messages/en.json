@@ -1,0 +1,55 @@
+{
+  "home": {
+    "badge": "Spotify → YouTube → MP3",
+    "title": "SpotiGrab",
+    "subtitle": "Paste a Spotify playlist link and automatically find matching tracks on YouTube to download locally. No more manual searching, one by one.",
+    "footer": "For personal backup use only. Please respect music creators' copyrights and support official music platforms."
+  },
+  "playlistInput": {
+    "placeholder": "Paste Spotify playlist link, e.g. https://open.spotify.com/playlist/...",
+    "analyzing": "Analyzing...",
+    "analyze": "Analyze",
+    "hint": "Supports public Spotify playlists. The system will automatically search for matching tracks on YouTube and download as MP3."
+  },
+  "loading": {
+    "analyzing": "Analyzing playlist and searching YouTube matches...",
+    "hint": "May take a minute or two for larger playlists"
+  },
+  "playlist": {
+    "matched": "matched on YouTube",
+    "unmatched": "not found"
+  },
+  "trackList": {
+    "total": "Total",
+    "foundYoutube": "· Found on YouTube",
+    "selected": "· Selected",
+    "songs": "",
+    "selectAll": "Select All",
+    "unselectAll": "Deselect All",
+    "matchFound": "✓",
+    "notFound": "✗ Not found"
+  },
+  "download": {
+    "downloading": "Downloading...",
+    "downloadSelected": "Download Selected",
+    "songsMp3": "Songs (MP3)",
+    "status": {
+      "pending": "Preparing...",
+      "downloading": "Downloading...",
+      "zipping": "Creating ZIP...",
+      "completed": "Download Complete!",
+      "failed": "Download Failed"
+    },
+    "downloadZip": "Download ZIP File",
+    "reset": "Start Over"
+  },
+  "errors": {
+    "analysisFailed": "Analysis failed",
+    "unknownError": "Unknown error occurred",
+    "downloadFailed": "Download failed",
+    "statusFailed": "Unable to get download status"
+  },
+  "language": {
+    "switch": "Switch Language"
+  }
+}
