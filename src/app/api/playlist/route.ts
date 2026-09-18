@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchPlaylistTracks } from "@/lib/spotify";
-import { searchYouTubeBatch } from "@/lib/youtube";
+import { extractPlaylistId } from "@/lib/spotify";
+import { fetchPlaylistFromEmbed } from "@/lib/spotify-embed";
 import type { TrackWithMatch } from "@/lib/types";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,28 +13,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "請提供 Spotify 播放清單 URL" }, { status: 400 });
     }
 
-    const playlist = await fetchPlaylistTracks(body.url.trim());
+    const playlistUrl = body.url.trim();
+    extractPlaylistId(playlistUrl);
+
+    const playlist = await fetchPlaylistFromEmbed(playlistUrl);
 
     if (playlist.tracks.length === 0) {
       return NextResponse.json({ error: "此播放清單沒有曲目" }, { status: 400 });
     }
 
-    const youtubeMatches = await searchYouTubeBatch(playlist.tracks);
-
     const tracks: TrackWithMatch[] = playlist.tracks.map((track) => ({
       ...track,
-      youtube: youtubeMatches.get(track.id) ?? null,
-      selected: youtubeMatches.get(track.id) !== null,
+      youtube: null,
+      selected: true,
     }));
 
     return NextResponse.json({
       playlistName: playlist.name,
       playlistImage: playlist.image,
       tracks,
+      note: playlist.note,
       stats: {
         total: tracks.length,
-        matched: tracks.filter((t) => t.youtube).length,
-        unmatched: tracks.filter((t) => !t.youtube).length,
+        matched: 0,
+        unmatched: tracks.length,
       },
     });
   } catch (err) {

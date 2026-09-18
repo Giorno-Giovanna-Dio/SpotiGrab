@@ -4,6 +4,7 @@ import type { TrackWithMatch } from "@/lib/types";
 
 interface TrackListProps {
   tracks: TrackWithMatch[];
+  matching?: boolean;
   onToggle: (trackId: string) => void;
   onToggleAll: (selected: boolean) => void;
 }
@@ -14,7 +15,7 @@ function formatDuration(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-export default function TrackList({ tracks, onToggle, onToggleAll }: TrackListProps) {
+export default function TrackList({ tracks, matching = false, onToggle, onToggleAll }: TrackListProps) {
   const matchedCount = tracks.filter((t) => t.youtube).length;
   const selectedCount = tracks.filter((t) => t.selected).length;
 
@@ -67,6 +68,8 @@ export default function TrackList({ tracks, onToggle, onToggleAll }: TrackListPr
                 <p className="truncate text-xs text-emerald-500/80" title={track.youtube.title}>
                   ✓ {track.youtube.title}
                 </p>
+              ) : matching ? (
+                <p className="text-xs text-zinc-500">搜尋中...</p>
               ) : (
                 <p className="text-xs text-red-400/80">✗ 找不到對應</p>
               )}

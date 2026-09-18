@@ -4,18 +4,24 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
 import DownloadProgress from "@/components/DownloadProgress";
-import type { TrackWithMatch } from "@/lib/types";
+import type { SpotifyTrack, TrackWithMatch } from "@/lib/types";
+
+const MATCH_BATCH_SIZE = 10;
 
 interface PlaylistData {
   playlistName: string;
   playlistImage?: string;
   tracks: TrackWithMatch[];
+  note?: string;
   stats: { total: number; matched: number; unmatched: number };
 }
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [matching, setMatching] = useState(false);
+  const [matchProgress, setMatchProgress] = useState(0);
+  const [matchTotal, setMatchTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [playlist, setPlaylist] = useState<PlaylistData | null>(null);
   const [tracks, setTracks] = useState<TrackWithMatch[]>([]);
@@ -37,8 +43,76 @@ export default function Home() {
 
   useEffect(() => () => stopPolling(), [stopPolling]);
 
+  const matchYouTubeTracks = async (trackList: TrackWithMatch[]) => {
+    setMatching(true);
+    setMatchProgress(0);
+    setMatchTotal(trackList.length);
+
+    const updated = [...trackList];
+
+    for (let i = 0; i < updated.length; i += MATCH_BATCH_SIZE) {
+      const batch = updated.slice(i, i + MATCH_BATCH_SIZE);
+      const spotifyTracks: SpotifyTrack[] = batch.map(({ id, name, artists, album, durationMs }) => ({
+        id,
+        name,
+        artists,
+        album,
+        durationMs,
+      }));
+
+      try {
+        const res = await fetch("/api/youtube/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tracks: spotifyTracks }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error ?? "YouTube 配對失敗");
+        }
+
+        for (const result of data.results as { trackId: string; youtube: TrackWithMatch["youtube"] }[]) {
+          const index = updated.findIndex((t) => t.id === result.trackId);
+          if (index === -1) continue;
+          updated[index] = {
+            ...updated[index],
+            youtube: result.youtube,
+            selected: result.youtube !== null,
+          };
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "YouTube 配對失敗");
+        break;
+      }
+
+      const completed = Math.min(i + MATCH_BATCH_SIZE, updated.length);
+      setMatchProgress(completed);
+      setTracks([...updated]);
+      setPlaylist((prev) =>
+        prev
+          ? {
+              ...prev,
+              tracks: [...updated],
+              stats: {
+                total: updated.length,
+                matched: updated.filter((t) => t.youtube).length,
+                unmatched: updated.filter((t) => !t.youtube).length,
+              },
+            }
+          : prev
+      );
+    }
+
+    setMatching(false);
+  };
+
   const handleAnalyze = async () => {
     setLoading(true);
+    setMatching(false);
+    setMatchProgress(0);
+    setMatchTotal(0);
     setError(null);
     setPlaylist(null);
     setTracks([]);
@@ -61,10 +135,13 @@ export default function Home() {
 
       setPlaylist(data);
       setTracks(data.tracks);
+      setLoading(false);
+
+      await matchYouTubeTracks(data.tracks);
     } catch (err) {
       setError(err instanceof Error ? err.message : "發生未知錯誤");
-    } finally {
       setLoading(false);
+      setMatching(false);
     }
   };
 
@@ -190,8 +267,8 @@ export default function Home() {
           {loading && (
             <div className="flex flex-col items-center gap-3 py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-              <p className="text-sm text-zinc-400">正在解析播放清單並搜尋 YouTube 對應...</p>
-              <p className="text-xs text-zinc-600">曲目較多時可能需要一兩分鐘</p>
+              <p className="text-sm text-zinc-400">正在讀取 Spotify 播放清單...</p>
+              <p className="text-xs text-zinc-600">通常只需幾秒鐘</p>
             </div>
           )}
 
@@ -219,17 +296,52 @@ export default function Home() {
                 </div>
               </div>
 
-              <TrackList tracks={tracks} onToggle={handleToggle} onToggleAll={handleToggleAll} />
+              {playlist.note && (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">
+                  {playlist.note}
+                </div>
+              )}
+
+              {matching && (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-300">YouTube 配對中...</span>
+                    <span className="text-zinc-500">
+                      {matchProgress} / {matchTotal}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                      style={{
+                        width: `${matchTotal > 0 ? Math.round((matchProgress / matchTotal) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    曲目列表已顯示，配對完成後即可下載。請稍候，不會再整頁卡住。
+                  </p>
+                </div>
+              )}
+
+              <TrackList
+                tracks={tracks}
+                matching={matching}
+                onToggle={handleToggle}
+                onToggleAll={handleToggleAll}
+              />
 
               {!jobId && (
                 <button
                   onClick={handleDownload}
-                  disabled={downloading || selectedCount === 0}
+                  disabled={downloading || matching || selectedCount === 0}
                   className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {downloading
-                    ? "下載中..."
-                    : `下載所選 ${selectedCount} 首歌曲 (MP3)`}
+                  {matching
+                    ? `YouTube 配對中 (${matchProgress}/${matchTotal})...`
+                    : downloading
+                      ? "下載中..."
+                      : `下載所選 ${selectedCount} 首歌曲 (MP3)`}
                 </button>
               )}
 

@@ -29,7 +29,7 @@ export default function PlaylistInput({ url, onUrlChange, onAnalyze, loading }: 
         </button>
       </div>
       <p className="text-xs text-zinc-500">
-        支援公開的 Spotify 播放清單。系統會自動在 YouTube 搜尋對應曲目並下載為 MP3。
+        支援公開 Spotify 播放清單，無需 Spotify API 金鑰。系統會自動在 YouTube 搜尋對應曲目並下載為 MP3。
       </p>
     </div>
   );

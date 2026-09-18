@@ -37,24 +37,32 @@ export async function searchYouTube(track: SpotifyTrack): Promise<YouTubeMatch |
 
 export async function searchYouTubeBatch(
   tracks: SpotifyTrack[],
-  onProgress?: (completed: number, total: number) => void
+  options?: { concurrency?: number; delayMs?: number }
 ): Promise<Map<string, YouTubeMatch | null>> {
+  const concurrency = options?.concurrency ?? 5;
+  const delayMs = options?.delayMs ?? 80;
   const results = new Map<string, YouTubeMatch | null>();
 
-  for (let i = 0; i < tracks.length; i++) {
-    const track = tracks[i];
-    try {
-      const match = await searchYouTube(track);
-      results.set(track.id, match);
-    } catch {
-      results.set(track.id, null);
+  for (let i = 0; i < tracks.length; i += concurrency) {
+    const chunk = tracks.slice(i, i + concurrency);
+
+    const chunkResults = await Promise.all(
+      chunk.map(async (track) => {
+        try {
+          const match = await searchYouTube(track);
+          return [track.id, match] as const;
+        } catch {
+          return [track.id, null] as const;
+        }
+      })
+    );
+
+    for (const [id, match] of chunkResults) {
+      results.set(id, match);
     }
 
-    onProgress?.(i + 1, tracks.length);
-
-    // 避免 YouTube 搜尋請求過於頻繁
-    if (i < tracks.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    if (i + concurrency < tracks.length && delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
 
