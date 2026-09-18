@@ -1,0 +1,55 @@
+{
+  "home": {
+    "badge": "Spotify → YouTube → MP3",
+    "title": "SpotiGrab",
+    "subtitle": "貼上 Spotify 播放清單,自動在 YouTube 找到對應曲目並下載到本地端。再也不用手動一首首搜尋了。",
+    "footer": "僅供個人備份使用。請尊重音樂創作者版權,支持正版音樂平台。"
+  },
+  "playlistInput": {
+    "placeholder": "貼上 Spotify 播放清單連結,例如 https://open.spotify.com/playlist/...",
+    "analyzing": "解析中...",
+    "analyze": "解析清單",
+    "hint": "支援公開的 Spotify 播放清單。系統會自動在 YouTube 搜尋對應曲目並下載為 MP3。"
+  },
+  "loading": {
+    "analyzing": "正在解析播放清單並搜尋 YouTube 對應...",
+    "hint": "曲目較多時可能需要一兩分鐘"
+  },
+  "playlist": {
+    "matched": "首找到 YouTube 對應",
+    "unmatched": "首未找到"
+  },
+  "trackList": {
+    "total": "共",
+    "foundYoutube": "首 · 找到 YouTube 對應",
+    "selected": "首 · 已選",
+    "songs": "首",
+    "selectAll": "全選",
+    "unselectAll": "取消全選",
+    "matchFound": "✓",
+    "notFound": "✗ 找不到對應"
+  },
+  "download": {
+    "downloading": "下載中...",
+    "downloadSelected": "下載所選",
+    "songsMp3": "首歌曲 (MP3)",
+    "status": {
+      "pending": "準備中...",
+      "downloading": "下載中...",
+      "zipping": "打包 ZIP 中...",
+      "completed": "下載完成!",
+      "failed": "下載失敗"
+    },
+    "downloadZip": "下載 ZIP 檔案",
+    "reset": "重新開始"
+  },
+  "errors": {
+    "analysisFailed": "解析失敗",
+    "unknownError": "發生未知錯誤",
+    "downloadFailed": "下載失敗",
+    "statusFailed": "無法取得下載狀態"
+  },
+  "language": {
+    "switch": "切換語言"
+  }
+}

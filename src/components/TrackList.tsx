@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from 'next-intl';
 import type { TrackWithMatch } from "@/lib/types";
 
 interface TrackListProps {
@@ -15,6 +16,7 @@ function formatDuration(ms: number): string {
 }
 
 export default function TrackList({ tracks, onToggle, onToggleAll }: TrackListProps) {
+  const t = useTranslations('trackList');
   const matchedCount = tracks.filter((t) => t.youtube).length;
   const selectedCount = tracks.filter((t) => t.selected).length;
 
@@ -22,20 +24,20 @@ export default function TrackList({ tracks, onToggle, onToggleAll }: TrackListPr
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-400">
-          共 {tracks.length} 首 · 找到 YouTube 對應 {matchedCount} 首 · 已選 {selectedCount} 首
+          {t('total')} {tracks.length} {t('foundYoutube')} {matchedCount} {t('selected')} {selectedCount} {t('songs')}
         </p>
         <div className="flex gap-2">
           <button
             onClick={() => onToggleAll(true)}
             className="rounded-lg px-3 py-1 text-xs text-emerald-400 hover:bg-emerald-500/10"
           >
-            全選
+            {t('selectAll')}
           </button>
           <button
             onClick={() => onToggleAll(false)}
             className="rounded-lg px-3 py-1 text-xs text-zinc-400 hover:bg-zinc-800"
           >
-            取消全選
+            {t('unselectAll')}
           </button>
         </div>
       </div>
@@ -65,10 +67,10 @@ export default function TrackList({ tracks, onToggle, onToggleAll }: TrackListPr
             <div className="hidden max-w-[200px] sm:block">
               {track.youtube ? (
                 <p className="truncate text-xs text-emerald-500/80" title={track.youtube.title}>
-                  ✓ {track.youtube.title}
+                  {t('matchFound')} {track.youtube.title}
                 </p>
               ) : (
-                <p className="text-xs text-red-400/80">✗ 找不到對應</p>
+                <p className="text-xs text-red-400/80">{t('notFound')}</p>
               )}
             </div>
           </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from 'next-intl';
+
 interface DownloadProgressProps {
   status: string;
   progress: number;
@@ -10,14 +12,6 @@ interface DownloadProgressProps {
   onReset: () => void;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "準備中...",
-  downloading: "下載中...",
-  zipping: "打包 ZIP 中...",
-  completed: "下載完成！",
-  failed: "下載失敗",
-};
-
 export default function DownloadProgress({
   status,
   progress,
@@ -27,13 +21,19 @@ export default function DownloadProgress({
   error,
   onReset,
 }: DownloadProgressProps) {
+  const t = useTranslations('download');
   const percent = total > 0 ? Math.round((progress / total) * 100) : 0;
+
+  const getStatusLabel = (status: string) => {
+    const statusKey = `status.${status}` as const;
+    return t(statusKey);
+  };
 
   return (
     <div className="w-full space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-zinc-200">
-          {STATUS_LABELS[status] ?? status}
+          {getStatusLabel(status)}
         </h3>
         <span className="text-sm text-zinc-400">
           {progress} / {total}
@@ -57,7 +57,7 @@ export default function DownloadProgress({
             href={`/api/download/${jobId}/file`}
             className="rounded-lg bg-emerald-500 px-6 py-2.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
           >
-            下載 ZIP 檔案
+            {t('downloadZip')}
           </a>
         )}
         {(status === "completed" || status === "failed") && (
@@ -65,7 +65,7 @@ export default function DownloadProgress({
             onClick={onReset}
             className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
           >
-            重新開始
+            {t('reset')}
           </button>
         )}
       </div>
