@@ -3,7 +3,12 @@ import type { SpotifyTrack, YouTubeMatch } from "./types";
 
 function buildSearchQuery(track: SpotifyTrack): string {
   const artist = track.artists.map((a) => a.name).join(" ");
-  return `${artist} ${track.name} official audio`;
+  const cleanName = track.name
+    .replace(/\s*-\s*sped up/i, "")
+    .replace(/\s*-\s*slowed/i, "")
+    .replace(/\s*-\s*remix.*/i, "")
+    .trim();
+  return `${artist} ${cleanName} official audio`;
 }
 
 function parseDuration(duration: { seconds?: number } | string | undefined): string {
@@ -20,9 +25,20 @@ export async function searchYouTube(track: SpotifyTrack): Promise<YouTubeMatch |
   const query = buildSearchQuery(track);
   const results = await yts(query);
 
-  const video = results.videos.find(
-    (v) => v.videoId && !v.title.toLowerCase().includes("cover") && v.seconds > 30
-  ) ?? results.videos[0];
+  const blocked = /cover|karaoke|8d audio|bass boosted|nightcore|tik\s?tok|hoodtrap|8d/i;
+
+  const video =
+    results.videos.find(
+      (v) =>
+        v.videoId &&
+        v.seconds > 45 &&
+        !blocked.test(v.title) &&
+        /official|lyric|audio|mv|music video/i.test(v.title)
+    ) ??
+    results.videos.find(
+      (v) => v.videoId && v.seconds > 45 && !blocked.test(v.title)
+    ) ??
+    results.videos[0];
 
   if (!video?.videoId) return null;
 

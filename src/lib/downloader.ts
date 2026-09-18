@@ -5,6 +5,12 @@ import { ZipArchive } from "archiver";
 import { createWriteStream } from "fs";
 import type { TrackWithMatch } from "./types";
 import { resolveFfmpegPath, resolveYtDlpPath } from "./yt-dlp";
+import {
+  buildYtDlpArgs,
+  formatYtDlp403Help,
+  getPlayerClientStrategies,
+  isRetryableYtDlpError,
+} from "./yt-dlp-args";
 
 const DOWNLOADS_DIR = path.join(process.cwd(), "downloads");
 
@@ -25,41 +31,10 @@ async function listMp3Files(dir: string): Promise<string[]> {
   return files.filter((f) => f.endsWith(".mp3"));
 }
 
-export async function downloadTrack(
-  track: TrackWithMatch,
-  outputDir: string
-): Promise<string> {
-  const youtubeUrl = track.youtube?.url;
-  if (!youtubeUrl) {
-    throw new Error("找不到 YouTube 對應影片");
-  }
-
-  await fs.mkdir(outputDir, { recursive: true });
-
+function runYtDlp(args: string[]): Promise<{ code: number; stderr: string }> {
   const ytDlpPath = resolveYtDlpPath();
-  const ffmpegPath = resolveFfmpegPath();
-
-  const filename = sanitizeFilename(
-    `${track.artists.map((a) => a.name).join(", ")} - ${track.name}`
-  );
-  const outputTemplate = path.join(outputDir, `${filename}.%(ext)s`);
-  const existingMp3 = new Set(await listMp3Files(outputDir));
 
   return new Promise((resolve, reject) => {
-    const args = [
-      "-x",
-      "--audio-format",
-      "mp3",
-      "--audio-quality",
-      "0",
-      "--no-playlist",
-      "--ffmpeg-location",
-      path.dirname(ffmpegPath),
-      "-o",
-      outputTemplate,
-      youtubeUrl,
-    ];
-
     const proc = spawn(/* turbopackIgnore: true */ ytDlpPath, args);
     let stderr = "";
 
@@ -67,31 +42,7 @@ export async function downloadTrack(
       stderr += data.toString();
     });
 
-    proc.on("close", async (code) => {
-      if (code !== 0) {
-        const detail = stderr.trim().split("\n").slice(-3).join(" ").slice(-400);
-        reject(new Error(detail || `yt-dlp 退出碼 ${code}`));
-        return;
-      }
-
-      try {
-        const mp3Files = await listMp3Files(outputDir);
-        const newFile = mp3Files.find((f) => !existingMp3.has(f));
-        const matchedFile =
-          newFile ??
-          mp3Files.find((f) => f.startsWith(filename)) ??
-          mp3Files.at(-1);
-
-        if (matchedFile) {
-          resolve(path.join(outputDir, matchedFile));
-        } else {
-          reject(new Error("下載完成但找不到 MP3 輸出檔"));
-        }
-      } catch (err) {
-        reject(err instanceof Error ? err : new Error("讀取下載結果失敗"));
-      }
-    });
-
+    proc.on("close", (code) => resolve({ code: code ?? 1, stderr }));
     proc.on("error", (err) => {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") {
         reject(
@@ -104,6 +55,80 @@ export async function downloadTrack(
       }
     });
   });
+}
+
+async function attemptDownload(
+  track: TrackWithMatch,
+  outputDir: string,
+  playerClient: string
+): Promise<string> {
+  const youtubeUrl = track.youtube!.url;
+  const ffmpegPath = resolveFfmpegPath();
+  const filename = sanitizeFilename(
+    `${track.artists.map((a) => a.name).join(", ")} - ${track.name}`
+  );
+  const outputTemplate = path.join(outputDir, `${filename}.%(ext)s`);
+  const existingMp3 = new Set(await listMp3Files(outputDir));
+
+  const args = buildYtDlpArgs({
+    ffmpegPath,
+    outputTemplate,
+    playerClient,
+    url: youtubeUrl,
+  });
+
+  const { code, stderr } = await runYtDlp(args);
+
+  if (code !== 0) {
+    const detail = stderr.trim().split("\n").slice(-4).join(" ").slice(-500);
+    throw new Error(detail || `yt-dlp 退出碼 ${code}`);
+  }
+
+  const mp3Files = await listMp3Files(outputDir);
+  const newFile = mp3Files.find((f) => !existingMp3.has(f));
+  const matchedFile =
+    newFile ?? mp3Files.find((f) => f.startsWith(filename)) ?? mp3Files.at(-1);
+
+  if (!matchedFile) {
+    throw new Error("下載完成但找不到 MP3 輸出檔");
+  }
+
+  return path.join(outputDir, matchedFile);
+}
+
+export async function downloadTrack(
+  track: TrackWithMatch,
+  outputDir: string
+): Promise<string> {
+  const youtubeUrl = track.youtube?.url;
+  if (!youtubeUrl) {
+    throw new Error("找不到 YouTube 對應影片");
+  }
+
+  await fs.mkdir(outputDir, { recursive: true });
+
+  const strategies = getPlayerClientStrategies();
+  let lastError: Error | null = null;
+
+  for (const playerClient of strategies) {
+    try {
+      return await attemptDownload(track, outputDir, playerClient);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("下載失敗");
+      lastError = error;
+
+      if (!isRetryableYtDlpError(error.message)) {
+        break;
+      }
+    }
+  }
+
+  const message = lastError?.message ?? "下載失敗";
+  if (isRetryableYtDlpError(message) && !process.env.YT_DLP_COOKIES_FROM_BROWSER) {
+    throw new Error(`${message} · ${formatYtDlp403Help()}`);
+  }
+
+  throw lastError ?? new Error("下載失敗");
 }
 
 export async function createZip(sourceDir: string, zipPath: string): Promise<void> {

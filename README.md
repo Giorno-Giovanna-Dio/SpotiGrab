@@ -53,9 +53,33 @@ npm run dev
 
 | 變數 | 必填 | 說明 |
 |------|------|------|
-| `SPOTIFY_CLIENT_ID` | 是 | Spotify App Client ID |
-| `SPOTIFY_CLIENT_SECRET` | 是 | Spotify App Client Secret |
-| `YT_DLP_PATH` | 否 | yt-dlp 執行檔路徑，預設 `~/.local/bin/yt-dlp` |
+| `YT_DLP_COOKIES_FROM_BROWSER` | 建議 | 修復 YouTube 403。Mac 填 `safari` 或 `chrome` |
+| `YT_DLP_PATH` | 否 | yt-dlp 執行檔路徑 |
+| `FFMPEG_PATH` | 否 | ffmpeg 執行檔路徑 |
+| `SPOTIFY_CLIENT_ID` | 否 | 選填，解析清單已可不靠 Spotify API |
+
+## YouTube 403 下載失敗？
+
+若看到 `HTTP Error 403: Forbidden`：
+
+1. **更新 yt-dlp**
+   ```bash
+   brew upgrade yt-dlp    # Mac
+   pip install -U yt-dlp  # Linux
+   ```
+
+2. **在 `.env.local` 加入瀏覽器 cookies（Mac 強烈建議）**
+   ```env
+   YT_DLP_COOKIES_FROM_BROWSER=safari
+   ```
+   或用 Chrome：`YT_DLP_COOKIES_FROM_BROWSER=chrome`
+
+3. **重啟 dev server**
+   ```bash
+   npm run dev
+   ```
+
+> 需先在 Safari/Chrome 登入 YouTube，且 Mac 可能需允許 Terminal 存取瀏覽器資料。
 
 ## 技術架構
 
