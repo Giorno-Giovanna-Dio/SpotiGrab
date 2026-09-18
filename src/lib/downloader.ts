@@ -4,8 +4,8 @@ import path from "path";
 import { ZipArchive } from "archiver";
 import { createWriteStream } from "fs";
 import type { TrackWithMatch } from "./types";
+import { resolveFfmpegPath, resolveYtDlpPath } from "./yt-dlp";
 
-const YT_DLP_PATH = process.env.YT_DLP_PATH ?? "/home/ubuntu/.local/bin/yt-dlp";
 const DOWNLOADS_DIR = path.join(process.cwd(), "downloads");
 
 export async function ensureDownloadsDir(): Promise<void> {
@@ -20,6 +20,11 @@ function sanitizeFilename(name: string): string {
   return name.replace(/[<>:"/\\|?*]/g, "_").slice(0, 200);
 }
 
+async function listMp3Files(dir: string): Promise<string[]> {
+  const files = await fs.readdir(dir);
+  return files.filter((f) => f.endsWith(".mp3"));
+}
+
 export async function downloadTrack(
   track: TrackWithMatch,
   outputDir: string
@@ -31,10 +36,14 @@ export async function downloadTrack(
 
   await fs.mkdir(outputDir, { recursive: true });
 
+  const ytDlpPath = resolveYtDlpPath();
+  const ffmpegPath = resolveFfmpegPath();
+
   const filename = sanitizeFilename(
     `${track.artists.map((a) => a.name).join(", ")} - ${track.name}`
   );
   const outputTemplate = path.join(outputDir, `${filename}.%(ext)s`);
+  const existingMp3 = new Set(await listMp3Files(outputDir));
 
   return new Promise((resolve, reject) => {
     const args = [
@@ -44,12 +53,14 @@ export async function downloadTrack(
       "--audio-quality",
       "0",
       "--no-playlist",
+      "--ffmpeg-location",
+      path.dirname(ffmpegPath),
       "-o",
       outputTemplate,
       youtubeUrl,
     ];
 
-    const proc = spawn(/* turbopackIgnore: true */ YT_DLP_PATH, args);
+    const proc = spawn(/* turbopackIgnore: true */ ytDlpPath, args);
     let stderr = "";
 
     proc.stderr.on("data", (data: Buffer) => {
@@ -58,16 +69,26 @@ export async function downloadTrack(
 
     proc.on("close", async (code) => {
       if (code !== 0) {
-        reject(new Error(stderr.slice(-500) || `yt-dlp 退出碼 ${code}`));
+        const detail = stderr.trim().split("\n").slice(-3).join(" ").slice(-400);
+        reject(new Error(detail || `yt-dlp 退出碼 ${code}`));
         return;
       }
 
-      const files = await fs.readdir(outputDir);
-      const match = files.find((f) => f.startsWith(filename) && f.endsWith(".mp3"));
-      if (match) {
-        resolve(path.join(outputDir, match));
-      } else {
-        reject(new Error("下載完成但找不到輸出檔案"));
+      try {
+        const mp3Files = await listMp3Files(outputDir);
+        const newFile = mp3Files.find((f) => !existingMp3.has(f));
+        const matchedFile =
+          newFile ??
+          mp3Files.find((f) => f.startsWith(filename)) ??
+          mp3Files.at(-1);
+
+        if (matchedFile) {
+          resolve(path.join(outputDir, matchedFile));
+        } else {
+          reject(new Error("下載完成但找不到 MP3 輸出檔"));
+        }
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error("讀取下載結果失敗"));
       }
     });
 
@@ -75,7 +96,7 @@ export async function downloadTrack(
       if ((err as NodeJS.ErrnoException).code === "ENOENT") {
         reject(
           new Error(
-            "找不到 yt-dlp。請安裝：pip install yt-dlp，或設定 YT_DLP_PATH 環境變數。"
+            "無法執行 yt-dlp。請確認已安裝並在 .env.local 設定 YT_DLP_PATH"
           )
         );
       } else {

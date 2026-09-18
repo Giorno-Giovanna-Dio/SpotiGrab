@@ -48,6 +48,9 @@ export default function Home() {
   const [jobTotal, setJobTotal] = useState(0);
   const [downloadReady, setDownloadReady] = useState(false);
   const [jobError, setJobError] = useState<string | undefined>();
+  const [jobTrackStatuses, setJobTrackStatuses] = useState<
+    { trackId: string; name: string; status: string; error?: string }[]
+  >([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -186,6 +189,7 @@ export default function Home() {
           setJobTotal(data.total);
           setDownloadReady(data.downloadReady);
           setJobError(data.error);
+          setJobTrackStatuses(data.tracks ?? []);
 
           if (data.status === "completed" || data.status === "failed") {
             stopPolling();
@@ -206,6 +210,7 @@ export default function Home() {
     setError(null);
     setDownloadReady(false);
     setJobError(undefined);
+    setJobTrackStatuses([]);
     setJobStatus("pending");
     setJobProgress(0);
 
@@ -239,6 +244,7 @@ export default function Home() {
     setJobTotal(0);
     setDownloadReady(false);
     setJobError(undefined);
+    setJobTrackStatuses([]);
     setDownloading(false);
   };
 
@@ -356,6 +362,7 @@ export default function Home() {
                   downloadReady={downloadReady}
                   jobId={jobId}
                   error={jobError}
+                  trackStatuses={jobTrackStatuses}
                   onReset={handleReset}
                 />
               ) : (

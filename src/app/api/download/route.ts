@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createJob, runDownloadJob } from "@/lib/jobs";
+import { verifyDownloadTools } from "@/lib/yt-dlp";
 import type { TrackWithMatch } from "@/lib/types";
 
 export const maxDuration = 600;
@@ -16,6 +17,13 @@ export async function POST(request: NextRequest) {
 
     if (selectedCount === 0) {
       return NextResponse.json({ error: "請至少選擇一首有 YouTube 對應的曲目" }, { status: 400 });
+    }
+
+    try {
+      verifyDownloadTools();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "下載工具未就緒";
+      return NextResponse.json({ error: message }, { status: 500 });
     }
 
     const job = createJob(body.tracks);

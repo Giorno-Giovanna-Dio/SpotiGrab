@@ -30,9 +30,13 @@ export function LinkIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
-export function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
+function cn(defaultClass: string, className?: string) {
+  return className ? `${defaultClass} ${className}` : defaultClass;
+}
+
+export function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg className={cn("h-4 w-4 shrink-0", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <circle cx="11" cy="11" r="8" />
       <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
     </svg>

@@ -49,7 +49,8 @@ export default function TrackList({
         <div className="relative min-w-0 flex-1">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
           <input
-            type="search"
+            type="text"
+            inputMode="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜尋歌曲或藝人..."

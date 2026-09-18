@@ -2,6 +2,13 @@
 
 import { CheckIcon, DownloadIcon, SpinnerIcon } from "./icons";
 
+interface TrackStatus {
+  trackId: string;
+  name: string;
+  status: string;
+  error?: string;
+}
+
 interface DownloadProgressProps {
   status: string;
   progress: number;
@@ -9,6 +16,7 @@ interface DownloadProgressProps {
   downloadReady: boolean;
   jobId: string | null;
   error?: string;
+  trackStatuses?: TrackStatus[];
   onReset: () => void;
 }
 
@@ -30,8 +38,10 @@ export default function DownloadProgress({
   downloadReady,
   jobId,
   error,
+  trackStatuses = [],
   onReset,
 }: DownloadProgressProps) {
+  const failedTracks = trackStatuses.filter((t) => t.status === "failed");
   const percent = total > 0 ? Math.round((progress / total) * 100) : 0;
   const config = STATUS_CONFIG[status] ?? { label: status, tone: "default" as const };
   const isActive = !["completed", "failed"].includes(status);
@@ -93,6 +103,24 @@ export default function DownloadProgress({
           )}
 
           {error && <p className="text-sm text-red-400">{error}</p>}
+
+          {failedTracks.length > 0 && (
+            <details className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-300/90">
+              <summary className="cursor-pointer font-medium">
+                失敗 {failedTracks.length} 首（點擊查看原因）
+              </summary>
+              <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto">
+                {failedTracks.slice(0, 5).map((t) => (
+                  <li key={t.trackId} className="truncate">
+                    {t.name}: {t.error ?? "未知錯誤"}
+                  </li>
+                ))}
+                {failedTracks.length > 5 && (
+                  <li className="text-red-400/60">...還有 {failedTracks.length - 5} 首</li>
+                )}
+              </ul>
+            </details>
+          )}
 
           <div className="flex flex-wrap gap-2 pt-1">
             {downloadReady && jobId && (

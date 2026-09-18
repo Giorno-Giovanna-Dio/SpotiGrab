@@ -67,7 +67,10 @@ export async function runDownloadJob(jobId: string, tracks: TrackWithMatch[]): P
 
   if (successCount === 0) {
     job.status = "failed";
-    job.error = "所有曲目下載均失敗";
+    const firstError = job.tracks.find((t) => t.error)?.error;
+    job.error = firstError
+      ? `所有曲目下載均失敗：${firstError}`
+      : "所有曲目下載均失敗。請確認已安裝 yt-dlp 與 ffmpeg";
     return;
   }
 
