@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "validate:i18n": "node scripts/validate-translations.js"
   },
   "dependencies": {
     "archiver": "^8.0.0",
