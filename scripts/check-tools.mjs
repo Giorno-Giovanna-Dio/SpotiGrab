@@ -12,19 +12,23 @@ const ytDlpCandidates = [
   "/usr/local/bin/yt-dlp",
 ].filter(Boolean);
 
+function getVersion(binary) {
+  const flag = binary.includes("ffmpeg") ? "-version" : "--version";
+  const output = execSync(`"${binary}" ${flag} 2>&1`, { encoding: "utf8" }).trim();
+  return output.split("\n")[0];
+}
+
 function checkExecutable(label, candidates) {
   for (const candidate of candidates) {
     try {
       if (candidate.includes("/")) {
         if (fs.existsSync(candidate)) {
-          const version = execSync(`"${candidate}" --version`, { encoding: "utf8" }).trim();
-          console.log(`✓ ${label}: ${candidate} (${version.split("\n")[0]})`);
+          console.log(`✓ ${label}: ${candidate} (${getVersion(candidate)})`);
           return true;
         }
       } else {
         const resolved = execSync(`command -v ${candidate}`, { encoding: "utf8" }).trim();
-        const version = execSync(`"${resolved}" --version`, { encoding: "utf8" }).trim();
-        console.log(`✓ ${label}: ${resolved} (${version.split("\n")[0]})`);
+        console.log(`✓ ${label}: ${resolved} (${getVersion(resolved)})`);
         return true;
       }
     } catch {
