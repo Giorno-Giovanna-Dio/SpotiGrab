@@ -26,6 +26,8 @@ export default function Home() {
   const [jobTotal, setJobTotal] = useState(0);
   const [downloadReady, setDownloadReady] = useState(false);
   const [jobError, setJobError] = useState<string | undefined>();
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -149,6 +151,46 @@ export default function Home() {
     setDownloading(false);
   };
 
+  const handlePayment = async () => {
+    setPaymentLoading(true);
+    setError(null);
+
+    try {
+      const selectedTracks = tracks.filter((t) => t.selected);
+      const amount = selectedTracks.length * 10;
+      const itemName = `SpotiGrab 下載 ${selectedTracks.length} 首歌曲`;
+      const trackIds = selectedTracks.map((t) => t.id);
+
+      const res = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          itemName,
+          tracks: trackIds,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "建立付款訂單失敗");
+      }
+
+      const html = await res.text();
+      const newWindow = window.open("", "_blank");
+      if (newWindow) {
+        newWindow.document.write(html);
+        newWindow.document.close();
+      } else {
+        throw new Error("無法開啟付款視窗，請檢查瀏覽器是否封鎖彈出視窗");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "建立付款訂單失敗");
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   const selectedCount = tracks.filter((t) => t.selected).length;
 
   return (
@@ -222,15 +264,59 @@ export default function Home() {
               <TrackList tracks={tracks} onToggle={handleToggle} onToggleAll={handleToggleAll} />
 
               {!jobId && (
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading || selectedCount === 0}
-                  className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {downloading
-                    ? "下載中..."
-                    : `下載所選 ${selectedCount} 首歌曲 (MP3)`}
-                </button>
+                <>
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">💰</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-emerald-400 mb-1">
+                          付費下載方案
+                        </h3>
+                        <p className="text-sm text-zinc-300 mb-2">
+                          支援作者並解鎖無限下載功能
+                        </p>
+                        <div className="flex items-baseline gap-2 mb-3">
+                          <span className="text-2xl font-bold text-white">NT$ 10</span>
+                          <span className="text-sm text-zinc-400">/ 首歌曲</span>
+                        </div>
+                        <ul className="text-xs text-zinc-400 space-y-1 mb-4">
+                          <li>✓ 高品質 MP3 下載</li>
+                          <li>✓ 支援批次下載</li>
+                          <li>✓ 支援綠界金流（信用卡、ATM、超商）</li>
+                        </ul>
+                        <button
+                          onClick={() => setShowPaymentModal(true)}
+                          disabled={paymentLoading || selectedCount === 0}
+                          className="w-full rounded-lg bg-emerald-500 py-2.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {paymentLoading
+                            ? "處理中..."
+                            : `付費下載 ${selectedCount} 首 (NT$ ${selectedCount * 10})`}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-zinc-800"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-zinc-950 px-2 text-zinc-500">或</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleDownload}
+                    disabled={downloading || selectedCount === 0}
+                    className="w-full rounded-xl bg-zinc-800 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {downloading ? "下載中..." : `免費下載 ${selectedCount} 首歌曲`}
+                  </button>
+                  <p className="text-xs text-center text-zinc-500 mt-2">
+                    免費版本可能有下載限制
+                  </p>
+                </>
               )}
 
               {jobId && (
@@ -252,6 +338,55 @@ export default function Home() {
           <p>僅供個人備份使用。請尊重音樂創作者版權，支持正版音樂平台。</p>
         </footer>
       </main>
+
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
+          <div className="max-w-md w-full rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+            <h2 className="text-xl font-bold mb-4">確認付款</h2>
+            <div className="space-y-3 mb-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-400">歌曲數量</span>
+                <span className="font-semibold">{selectedCount} 首</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-400">單價</span>
+                <span>NT$ 10 / 首</span>
+              </div>
+              <div className="h-px bg-zinc-800"></div>
+              <div className="flex justify-between">
+                <span className="font-semibold">總金額</span>
+                <span className="text-xl font-bold text-emerald-400">
+                  NT$ {selectedCount * 10}
+                </span>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-400 mb-6">
+              點擊「前往付款」後將開啟綠界金流付款頁面。
+              <br />
+              付款完成後即可下載歌曲。
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                disabled={paymentLoading}
+                className="flex-1 rounded-lg border border-zinc-700 py-2.5 text-sm font-semibold transition hover:bg-zinc-800 disabled:opacity-40"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  handlePayment();
+                }}
+                disabled={paymentLoading}
+                className="flex-1 rounded-lg bg-emerald-500 py-2.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-40"
+              >
+                {paymentLoading ? "處理中..." : "前往付款"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
