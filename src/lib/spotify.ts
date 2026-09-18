@@ -5,13 +5,25 @@ const SPOTIFY_API_BASE = "https://api.spotify.com/v1";
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
+const PLACEHOLDER_VALUES = new Set([
+  "your_spotify_client_id",
+  "your_spotify_client_secret",
+  "",
+]);
+
 function getCredentials() {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const clientId = process.env.SPOTIFY_CLIENT_ID?.trim();
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET?.trim();
 
   if (!clientId || !clientSecret) {
     throw new Error(
       "缺少 Spotify API 憑證。請在 .env.local 設定 SPOTIFY_CLIENT_ID 與 SPOTIFY_CLIENT_SECRET。"
+    );
+  }
+
+  if (PLACEHOLDER_VALUES.has(clientId) || PLACEHOLDER_VALUES.has(clientSecret)) {
+    throw new Error(
+      "Spotify API 憑證仍是範例值。請到 https://developer.spotify.com/dashboard 建立 App，將真實的 Client ID 與 Client Secret 填入 .env.local，然後重新啟動 npm run dev。"
     );
   }
 
@@ -36,7 +48,21 @@ async function getAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`Spotify 認證失敗：${response.status}`);
+    const errorBody = (await response.json().catch(() => null)) as
+      | { error?: string; error_description?: string }
+      | null;
+
+    if (response.status === 400 && errorBody?.error === "invalid_client") {
+      throw new Error(
+        "Spotify Client ID 或 Client Secret 無效。請到 https://developer.spotify.com/dashboard 確認 App 憑證是否正確，更新 .env.local 後重新啟動 npm run dev。"
+      );
+    }
+
+    throw new Error(
+      errorBody?.error_description ??
+        errorBody?.error ??
+        `Spotify 認證失敗：${response.status}`
+    );
   }
 
   const data = (await response.json()) as { access_token: string; expires_in: number };
