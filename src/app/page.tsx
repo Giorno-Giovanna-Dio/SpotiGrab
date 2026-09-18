@@ -4,6 +4,11 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
 import DownloadProgress from "@/components/DownloadProgress";
+import StepIndicator from "@/components/StepIndicator";
+import EmptyState from "@/components/EmptyState";
+import PlaylistHero from "@/components/PlaylistHero";
+import StickyActionBar from "@/components/StickyActionBar";
+import { SpotifyIcon } from "@/components/icons";
 import type { SpotifyTrack, TrackWithMatch } from "@/lib/types";
 
 const MATCH_BATCH_SIZE = 10;
@@ -14,6 +19,17 @@ interface PlaylistData {
   tracks: TrackWithMatch[];
   note?: string;
   stats: { total: number; matched: number; unmatched: number };
+}
+
+function getCurrentStep(
+  playlist: PlaylistData | null,
+  matching: boolean,
+  jobId: string | null
+): "input" | "match" | "download" {
+  if (jobId) return "download";
+  if (playlist && matching) return "match";
+  if (playlist) return "download";
+  return "input";
 }
 
 export default function Home() {
@@ -227,100 +243,101 @@ export default function Home() {
   };
 
   const selectedCount = tracks.filter((t) => t.selected).length;
+  const currentStep = getCurrentStep(playlist, matching, jobId);
+  const stats = playlist?.stats ?? { total: 0, matched: 0, unmatched: 0 };
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-emerald-600/5 blur-3xl" />
+        <div className="animate-pulse-glow absolute -left-32 top-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="animate-pulse-glow absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-[#1DB954]/5 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgb(161 161 170) 1px, transparent 0)`,
+            backgroundSize: "32px 32px",
+          }}
+        />
       </div>
 
-      <main className="relative mx-auto max-w-3xl px-6 py-16">
-        <header className="mb-12 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Spotify → YouTube → MP3
+      <main className="relative mx-auto max-w-2xl px-4 pb-28 pt-10 sm:px-6 sm:pt-14 lg:max-w-3xl">
+        <header className="mb-10 text-center">
+          <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-xs font-medium text-zinc-400 backdrop-blur">
+            <SpotifyIcon className="h-4 w-4 text-[#1DB954]" />
+            <span>Spotify</span>
+            <span className="text-zinc-700">→</span>
+            <span className="text-red-400">YouTube</span>
+            <span className="text-zinc-700">→</span>
+            <span className="text-emerald-400">MP3</span>
           </div>
-          <h1 className="mb-3 text-4xl font-bold tracking-tight">
-            Spoti<span className="text-emerald-400">Grab</span>
+
+          <h1 className="mb-3 text-4xl font-bold tracking-tight sm:text-5xl">
+            Spoti<span className="bg-gradient-to-r from-emerald-400 to-[#1DB954] bg-clip-text text-transparent">Grab</span>
           </h1>
-          <p className="mx-auto max-w-lg text-zinc-400">
-            貼上 Spotify 播放清單，自動在 YouTube 找到對應曲目並下載到本地端。
-            再也不用手動一首首搜尋了。
+          <p className="mx-auto max-w-md text-sm leading-relaxed text-zinc-500 sm:text-base">
+            貼上播放清單，自動配對 YouTube，一鍵下載到本地。
+            <br className="hidden sm:block" />
+            再也不用手動一首首搜了。
           </p>
         </header>
 
-        <div className="space-y-8">
+        <div className="mb-8">
+          <StepIndicator current={currentStep} />
+        </div>
+
+        <div className="space-y-6">
           <PlaylistInput
             url={url}
             onUrlChange={setUrl}
             onAnalyze={handleAnalyze}
             loading={loading}
+            disabled={!!jobId && !downloadReady}
           />
 
           {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
+            <div
+              role="alert"
+              className="animate-fade-in flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3.5 text-sm text-red-300"
+            >
+              <span className="mt-0.5 shrink-0 text-red-400">!</span>
+              <div>
+                <p className="font-medium">發生錯誤</p>
+                <p className="mt-0.5 text-red-300/80">{error}</p>
+              </div>
             </div>
           )}
 
           {loading && (
-            <div className="flex flex-col items-center gap-3 py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-              <p className="text-sm text-zinc-400">正在讀取 Spotify 播放清單...</p>
-              <p className="text-xs text-zinc-600">通常只需幾秒鐘</p>
+            <div className="animate-fade-in flex flex-col items-center gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/30 py-14">
+              <div className="relative h-12 w-12">
+                <div className="absolute inset-0 animate-spin rounded-full border-2 border-emerald-500/20 border-t-emerald-400" />
+                <div className="absolute inset-2 rounded-full bg-zinc-900" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-zinc-300">讀取 Spotify 播放清單</p>
+                <p className="mt-1 text-xs text-zinc-600">通常只需幾秒鐘...</p>
+              </div>
             </div>
           )}
 
+          {!playlist && !loading && <EmptyState />}
+
           {playlist && !loading && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                {playlist.playlistImage && (
-                  <img
-                    src={playlist.playlistImage}
-                    alt={playlist.playlistName}
-                    className="h-16 w-16 rounded-lg object-cover shadow-lg"
-                  />
-                )}
-                <div>
-                  <h2 className="text-lg font-semibold">{playlist.playlistName}</h2>
-                  <p className="text-sm text-zinc-500">
-                    {playlist.stats.matched}/{playlist.stats.total} 首找到 YouTube 對應
-                    {playlist.stats.unmatched > 0 && (
-                      <span className="text-amber-500/80">
-                        {" "}
-                        · {playlist.stats.unmatched} 首未找到
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-5">
+              <PlaylistHero
+                name={playlist.playlistName}
+                image={playlist.playlistImage}
+                total={stats.total}
+                matched={stats.matched}
+                unmatched={stats.unmatched}
+                matching={matching}
+                matchProgress={matchProgress}
+                matchTotal={matchTotal}
+              />
 
               {playlist.note && (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">
+                <div className="rounded-xl border border-amber-500/15 bg-amber-500/5 px-4 py-3 text-sm text-amber-200/80">
                   {playlist.note}
-                </div>
-              )}
-
-              {matching && (
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-300">YouTube 配對中...</span>
-                    <span className="text-zinc-500">
-                      {matchProgress} / {matchTotal}
-                    </span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                    <div
-                      className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                      style={{
-                        width: `${matchTotal > 0 ? Math.round((matchProgress / matchTotal) * 100) : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    曲目列表已顯示，配對完成後即可下載。請稍候，不會再整頁卡住。
-                  </p>
                 </div>
               )}
 
@@ -331,21 +348,7 @@ export default function Home() {
                 onToggleAll={handleToggleAll}
               />
 
-              {!jobId && (
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading || matching || selectedCount === 0}
-                  className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {matching
-                    ? `YouTube 配對中 (${matchProgress}/${matchTotal})...`
-                    : downloading
-                      ? "下載中..."
-                      : `下載所選 ${selectedCount} 首歌曲 (MP3)`}
-                </button>
-              )}
-
-              {jobId && (
+              {jobId ? (
                 <DownloadProgress
                   status={jobStatus}
                   progress={jobProgress}
@@ -355,13 +358,23 @@ export default function Home() {
                   error={jobError}
                   onReset={handleReset}
                 />
+              ) : (
+                <StickyActionBar
+                  selectedCount={selectedCount}
+                  matching={matching}
+                  matchProgress={matchProgress}
+                  matchTotal={matchTotal}
+                  downloading={downloading}
+                  disabled={downloading || matching || selectedCount === 0}
+                  onDownload={handleDownload}
+                />
               )}
             </div>
           )}
         </div>
 
-        <footer className="mt-16 border-t border-zinc-800/60 pt-8 text-center text-xs text-zinc-600">
-          <p>僅供個人備份使用。請尊重音樂創作者版權，支持正版音樂平台。</p>
+        <footer className="mt-14 text-center text-[11px] leading-relaxed text-zinc-700">
+          <p>僅供個人備份使用 · 請尊重音樂創作者版權</p>
         </footer>
       </main>
     </div>
