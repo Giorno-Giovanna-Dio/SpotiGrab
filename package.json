@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "PATH=\"${HOME}/.local/bin:${PATH}\" next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "PATH=\"${HOME}/.local/bin:${PATH}\" next start",
+    "lint": "eslint",
+    "check-tools": "node scripts/check-tools.mjs"
   },
   "dependencies": {
     "archiver": "^8.0.0",

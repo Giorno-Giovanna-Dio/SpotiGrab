@@ -14,11 +14,20 @@
 ## 前置需求
 
 1. **Node.js 18+**
-2. **yt-dlp**（YouTube 下載工具）
+2. **yt-dlp** 與 **ffmpeg**（YouTube 下載與 MP3 轉檔）
    ```bash
+   # Linux（Cloud Agent / Ubuntu）
    pip install yt-dlp
-   # 或
-   brew install yt-dlp
+   sudo apt install ffmpeg
+   export PATH="$HOME/.local/bin:$PATH"   # pip 安裝後需加 PATH
+
+   # macOS
+   brew install yt-dlp ffmpeg
+   ```
+
+   檢查是否就緒：
+   ```bash
+   npm run check-tools
    ```
 3. **Spotify API 憑證**（免費）
    - 前往 [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
