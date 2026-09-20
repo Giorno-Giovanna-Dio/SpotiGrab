@@ -191,7 +191,7 @@ export default function PricingModal({
                 </p>
               </div>
               <button
-                onClick={() => handleSelectPlan("payPerTrack", trackCount)}
+                onClick={() => handleSelectPlan("payPerTrack")}
                 disabled={loading}
                 className="rounded-lg bg-zinc-800 px-6 py-3 text-sm font-semibold transition hover:bg-zinc-700 disabled:opacity-40 ml-6"
               >
