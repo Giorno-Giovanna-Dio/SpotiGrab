@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
 import DownloadProgress from "@/components/DownloadProgress";
@@ -59,13 +59,13 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? t('errors.analysisFailed'));
+        throw new Error(data.error ?? t("errors.analysisFailed"));
       }
 
       setPlaylist(data);
       setTracks(data.tracks);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.unknownError'));
+      setError(err instanceof Error ? err.message : t("errors.unknownError"));
     } finally {
       setLoading(false);
     }
@@ -73,13 +73,18 @@ export default function Home() {
 
   const handleToggle = (trackId: string) => {
     setTracks((prev) =>
-      prev.map((t) => (t.id === trackId ? { ...t, selected: !t.selected } : t))
+      prev.map((track) =>
+        track.id === trackId ? { ...track, selected: !track.selected } : track
+      )
     );
   };
 
   const handleToggleAll = (selected: boolean) => {
     setTracks((prev) =>
-      prev.map((t) => ({ ...t, selected: t.youtube ? selected : false }))
+      prev.map((track) => ({
+        ...track,
+        selected: track.youtube ? selected : false,
+      }))
     );
   };
 
@@ -104,11 +109,11 @@ export default function Home() {
         } catch {
           stopPolling();
           setDownloading(false);
-          setJobError(t('errors.statusFailed'));
+          setJobError(t("errors.statusFailed"));
         }
       }, 1500);
     },
-    [stopPolling]
+    [stopPolling, t]
   );
 
   const handleDownload = async () => {
@@ -129,7 +134,7 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? t('errors.downloadFailed'));
+        throw new Error(data.error ?? t("errors.downloadFailed"));
       }
 
       setJobId(data.jobId);
@@ -137,7 +142,7 @@ export default function Home() {
       pollJobStatus(data.jobId);
     } catch (err) {
       setDownloading(false);
-      setError(err instanceof Error ? err.message : t('errors.downloadFailed'));
+      setError(err instanceof Error ? err.message : t("errors.downloadFailed"));
     }
   };
 
@@ -152,76 +157,186 @@ export default function Home() {
     setDownloading(false);
   };
 
-  const selectedCount = tracks.filter((t) => t.selected).length;
+  const selectedCount = tracks.filter((track) => track.selected).length;
+  const heroFeatures = [
+    t("home.featureNoLogin"),
+    t("home.featureBatchMatch"),
+    t("home.featureFreeSelect"),
+  ];
+  const steps = [
+    ["01", t("home.step1Title"), t("home.step1Desc")],
+    ["02", t("home.step2Title"), t("home.step2Desc")],
+    ["03", t("home.step3Title"), t("home.step3Desc")],
+  ] as const;
 
   return (
-    <div className="min-h-full bg-zinc-950 text-zinc-100">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-emerald-600/5 blur-3xl" />
+    <div className="relative min-h-screen overflow-hidden bg-[#070908] text-zinc-100">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-[-28rem] h-[48rem] w-[48rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" />
       </div>
 
-      <main className="relative mx-auto max-w-3xl px-6 py-16">
-        <div className="absolute right-6 top-6">
-          <LanguageSwitcher />
-        </div>
-        
-        <header className="mb-12 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            {t('home.badge')}
+      <header className="relative z-10 border-b border-white/[0.06]">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
+          <a href="#" className="flex items-center gap-2.5" aria-label={t("home.homeAriaLabel")}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-400 text-emerald-950 shadow-lg shadow-emerald-500/15">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 8.5a11 11 0 0 1 12 0M7.5 12a8 8 0 0 1 9 0M9 15.5a5 5 0 0 1 6 0" />
+              </svg>
+            </span>
+            <span className="text-base font-semibold tracking-tight">
+              Spoti<span className="text-emerald-400">Grab</span>
+            </span>
+          </a>
+          <div className="flex items-center gap-4">
+            <div className="hidden items-center gap-2 text-xs text-zinc-500 sm:flex">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              {t("home.serviceStatus")}
+            </div>
+            <LanguageSwitcher />
           </div>
-          <h1 className="mb-3 text-4xl font-bold tracking-tight">
-            Spoti<span className="text-emerald-400">Grab</span>
-          </h1>
-          <p className="mx-auto max-w-lg text-zinc-400">
-            {t('home.subtitle')}
-          </p>
-        </header>
+        </div>
+      </header>
 
-        <div className="space-y-8">
-          <PlaylistInput
-            url={url}
-            onUrlChange={setUrl}
-            onAnalyze={handleAnalyze}
-            loading={loading}
-          />
+      <main className="relative z-10">
+        <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-16 pt-14 sm:px-8 md:pt-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pb-24">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[0.07] px-3 py-1.5 text-xs font-medium text-emerald-300">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m13 2-9 11h7l-1 9 9-12h-7l1-8Z" />
+              </svg>
+              {t("home.heroBadge")}
+            </div>
+            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl">
+              {t("home.heroTitle")}
+              <span className="mt-1 block bg-gradient-to-r from-emerald-300 to-teal-500 bg-clip-text text-transparent">
+                {t("home.heroTitleAccent")}
+              </span>
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">
+              {t("home.heroDescription")}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-zinc-400">
+              {heroFeatures.map((item) => (
+                <span key={item} className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300">
+                    <svg aria-hidden="true" viewBox="0 0 20 20" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m5 10 3 3 7-7" />
+                    </svg>
+                  </span>
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
 
+          <div className="relative">
+            <div aria-hidden="true" className="absolute -inset-4 rounded-[2rem] bg-emerald-400/[0.04] blur-2xl" />
+            <div className="relative rounded-2xl border border-white/10 bg-[#111411]/90 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    {t("home.importLabel")}
+                  </p>
+                  <h2 className="mt-1.5 text-lg font-semibold tracking-tight text-white">
+                    {t("home.importTitle")}
+                  </h2>
+                </div>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/8 bg-white/[0.03] text-zinc-400">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h10" />
+                  </svg>
+                </span>
+              </div>
+              <PlaylistInput
+                url={url}
+                onUrlChange={setUrl}
+                onAnalyze={handleAnalyze}
+                loading={loading}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-white/[0.06] bg-white/[0.015]">
+          <div className="mx-auto grid max-w-6xl divide-y divide-white/[0.06] px-5 sm:px-8 md:grid-cols-3 md:divide-x md:divide-y-0">
+            {steps.map(([number, title, description]) => (
+              <div key={number} className="flex gap-4 py-6 md:px-7 md:first:pl-0 md:last:pr-0">
+                <span className="font-mono text-xs font-medium text-emerald-400">{number}</span>
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-200">{title}</h3>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500">{description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={`mx-auto max-w-5xl px-5 sm:px-8 ${loading || error || playlist ? "py-14 md:py-20" : ""}`}>
           {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-400/20 bg-red-400/[0.07] px-4 py-3.5 text-sm text-red-200">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="9" />
+                <path strokeLinecap="round" d="M12 8v5m0 3h.01" />
+              </svg>
               {error}
             </div>
           )}
 
           {loading && (
-            <div className="flex flex-col items-center gap-3 py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-              <p className="text-sm text-zinc-400">{t('loading.analyzing')}</p>
-              <p className="text-xs text-zinc-600">{t('loading.hint')}</p>
+            <div className="flex flex-col items-center rounded-2xl border border-white/8 bg-[#111411] px-6 py-14 text-center shadow-2xl shadow-black/20">
+              <div className="relative mb-5 flex h-12 w-12 items-center justify-center">
+                <div className="absolute inset-0 animate-spin rounded-full border-2 border-white/8 border-t-emerald-400" />
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-emerald-300" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 8.5a11 11 0 0 1 12 0M7.5 12a8 8 0 0 1 9 0M9 15.5a5 5 0 0 1 6 0" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-zinc-200">{t("loading.analyzing")}</p>
+              <p className="mt-2 text-xs text-zinc-500">{t("loading.hint")}</p>
             </div>
           )}
 
           {playlist && !loading && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
+            <div className="space-y-5">
+              <div className="flex flex-col gap-5 rounded-2xl border border-white/8 bg-[#111411] p-5 shadow-2xl shadow-black/20 sm:flex-row sm:items-center sm:p-6">
                 {playlist.playlistImage && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={playlist.playlistImage}
                     alt={playlist.playlistName}
-                    className="h-16 w-16 rounded-lg object-cover shadow-lg"
+                    className="h-20 w-20 rounded-xl object-cover shadow-xl shadow-black/30"
                   />
                 )}
-                <div>
-                  <h2 className="text-lg font-semibold">{playlist.playlistName}</h2>
-                  <p className="text-sm text-zinc-500">
-                    {playlist.stats.matched}/{playlist.stats.total} {t('playlist.matched')}
-                    {playlist.stats.unmatched > 0 && (
-                      <span className="text-amber-500/80">
-                        {" "}
-                        · {playlist.stats.unmatched} {t('playlist.unmatched')}
-                      </span>
-                    )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-400">
+                    {t("playlist.label")}
                   </p>
+                  <h2 className="mt-1.5 truncate text-xl font-semibold tracking-tight text-white">
+                    {playlist.playlistName}
+                  </h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                    <span>{t("playlist.totalTracks", { count: playlist.stats.total })}</span>
+                    <span className="h-1 w-1 rounded-full bg-zinc-700" />
+                    <span className="text-emerald-300">
+                      {t("playlist.matchedCount", { count: playlist.stats.matched })}
+                    </span>
+                    {playlist.stats.unmatched > 0 && (
+                      <>
+                        <span className="h-1 w-1 rounded-full bg-zinc-700" />
+                        <span className="text-amber-300">
+                          {t("playlist.unmatchedCount", { count: playlist.stats.unmatched })}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex h-11 min-w-24 items-center justify-center rounded-xl border border-white/8 bg-black/20 px-4 text-sm font-medium tabular-nums text-zinc-300">
+                  {t("playlist.matchPercent", {
+                    percent: Math.round((playlist.stats.matched / playlist.stats.total) * 100),
+                  })}
                 </div>
               </div>
 
@@ -231,11 +346,16 @@ export default function Home() {
                 <button
                   onClick={handleDownload}
                   disabled={downloading || selectedCount === 0}
-                  className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-semibold text-emerald-950 shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-300 active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {downloading
-                    ? t('download.downloading')
-                    : `${t('download.downloadSelected')} ${selectedCount} ${t('download.songsMp3')}`}
+                    ? t("download.downloading")
+                    : t("download.downloadSelectedCount", { count: selectedCount })}
+                  {!downloading && (
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" />
+                    </svg>
+                  )}
                 </button>
               )}
 
@@ -252,12 +372,15 @@ export default function Home() {
               )}
             </div>
           )}
-        </div>
-
-        <footer className="mt-16 border-t border-zinc-800/60 pt-8 text-center text-xs text-zinc-600">
-          <p>{t('home.footer')}</p>
-        </footer>
+        </section>
       </main>
+
+      <footer className="relative z-10 border-t border-white/[0.06]">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-7 text-xs text-zinc-600 sm:px-8 md:flex-row md:items-center md:justify-between">
+          <p>© {new Date().getFullYear()} SpotiGrab</p>
+          <p>{t("home.footer")}</p>
+        </div>
+      </footer>
     </div>
   );
 }

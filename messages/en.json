@@ -3,36 +3,69 @@
     "badge": "Spotify → YouTube → MP3",
     "title": "SpotiGrab",
     "subtitle": "Paste a Spotify playlist link and automatically find matching tracks on YouTube to download locally. No more manual searching, one by one.",
-    "footer": "For personal backup use only. Please respect music creators' copyrights and support official music platforms."
+    "footer": "For personal backup use only. Please respect music creators' copyrights and support official music platforms.",
+    "heroBadge": "Organize your music faster",
+    "heroTitle": "Take your playlist with you.",
+    "heroTitleAccent": "Simple, fast, clear.",
+    "heroDescription": "Paste a Spotify playlist and we'll find matching sources, organize tracks, and pack them into a convenient ZIP file.",
+    "featureNoLogin": "No login required",
+    "featureBatchMatch": "Batch matching",
+    "featureFreeSelect": "Free selection",
+    "serviceStatus": "All systems operational",
+    "homeAriaLabel": "SpotiGrab home",
+    "importLabel": "Get started",
+    "importTitle": "Import playlist",
+    "step1Title": "Paste link",
+    "step1Desc": "Enter a public Spotify playlist URL",
+    "step2Title": "Review tracks",
+    "step2Desc": "Check match results and select the songs you need",
+    "step3Title": "Download",
+    "step3Desc": "Get a neatly organized ZIP file when done"
   },
   "playlistInput": {
-    "placeholder": "Paste Spotify playlist link, e.g. https://open.spotify.com/playlist/...",
+    "label": "Spotify playlist URL",
+    "placeholder": "https://open.spotify.com/playlist/...",
     "analyzing": "Analyzing...",
     "analyze": "Analyze",
-    "hint": "Supports public Spotify playlists. The system will automatically search for matching tracks on YouTube and download as MP3."
+    "hint": "Supports public playlists. No Spotify login required."
   },
   "loading": {
-    "analyzing": "Analyzing playlist and searching YouTube matches...",
-    "hint": "May take a minute or two for larger playlists"
+    "analyzing": "Analyzing and matching tracks",
+    "hint": "Larger playlists may take a minute or two. Please keep this page open."
   },
   "playlist": {
+    "label": "Spotify Playlist",
+    "totalTracks": "{count} tracks",
+    "matchedCount": "{count} matched",
+    "unmatchedCount": "{count} not found",
+    "matchPercent": "{percent}% matched",
     "matched": "matched on YouTube",
     "unmatched": "not found"
   },
   "trackList": {
+    "title": "Track matching results",
+    "summary": "{matched} matched · {selected} selected",
+    "trackColumn": "Track",
+    "statusColumn": "Match status",
+    "matchedBadge": "Matched",
+    "selectTrack": "Select",
+    "deselectTrack": "Deselect",
     "total": "Total",
     "foundYoutube": "· Found on YouTube",
     "selected": "· Selected",
     "songs": "",
     "selectAll": "Select All",
-    "unselectAll": "Deselect All",
+    "unselectAll": "Clear",
     "matchFound": "✓",
-    "notFound": "✗ Not found"
+    "notFound": "Not found"
   },
   "download": {
     "downloading": "Downloading...",
     "downloadSelected": "Download Selected",
+    "downloadSelectedCount": "Download {count} selected songs",
     "songsMp3": "Songs (MP3)",
+    "jobLabel": "Download job",
+    "processed": "Processed {progress} / {total} tracks",
     "status": {
       "pending": "Preparing...",
       "downloading": "Downloading...",

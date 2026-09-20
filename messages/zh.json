@@ -3,36 +3,69 @@
     "badge": "Spotify → YouTube → MP3",
     "title": "SpotiGrab",
     "subtitle": "貼上 Spotify 播放清單,自動在 YouTube 找到對應曲目並下載到本地端。再也不用手動一首首搜尋了。",
-    "footer": "僅供個人備份使用。請尊重音樂創作者版權,支持正版音樂平台。"
+    "footer": "僅供個人備份使用。請尊重音樂創作者版權,支持正版音樂平台。",
+    "heroBadge": "更快整理你的音樂收藏",
+    "heroTitle": "播放清單，一次帶走。",
+    "heroTitleAccent": "簡單、快速、清楚。",
+    "heroDescription": "貼上 Spotify 播放清單，我們會自動搜尋對應音源、整理曲目，並打包成一份方便保存的 ZIP 檔案。",
+    "featureNoLogin": "無需登入",
+    "featureBatchMatch": "批次配對",
+    "featureFreeSelect": "自由選取",
+    "serviceStatus": "服務正常",
+    "homeAriaLabel": "SpotiGrab 首頁",
+    "importLabel": "開始轉換",
+    "importTitle": "匯入播放清單",
+    "step1Title": "貼上連結",
+    "step1Desc": "輸入公開的 Spotify 播放清單網址",
+    "step2Title": "確認曲目",
+    "step2Desc": "檢視配對結果並選擇需要的歌曲",
+    "step3Title": "下載收藏",
+    "step3Desc": "完成後一次取得整理好的 ZIP 檔案"
   },
   "playlistInput": {
-    "placeholder": "貼上 Spotify 播放清單連結,例如 https://open.spotify.com/playlist/...",
+    "label": "Spotify 播放清單網址",
+    "placeholder": "https://open.spotify.com/playlist/...",
     "analyzing": "解析中...",
     "analyze": "解析清單",
-    "hint": "支援公開的 Spotify 播放清單。系統會自動在 YouTube 搜尋對應曲目並下載為 MP3。"
+    "hint": "支援公開播放清單，無需登入 Spotify。"
   },
   "loading": {
-    "analyzing": "正在解析播放清單並搜尋 YouTube 對應...",
-    "hint": "曲目較多時可能需要一兩分鐘"
+    "analyzing": "正在分析並配對曲目",
+    "hint": "曲目較多時可能需要一兩分鐘，請保持此頁開啟"
   },
   "playlist": {
+    "label": "Spotify Playlist",
+    "totalTracks": "{count} 首曲目",
+    "matchedCount": "{count} 首配對成功",
+    "unmatchedCount": "{count} 首未找到",
+    "matchPercent": "{percent}% 配對",
     "matched": "首找到 YouTube 對應",
     "unmatched": "首未找到"
   },
   "trackList": {
+    "title": "曲目配對結果",
+    "summary": "{matched} 首已配對 · {selected} 首已選取",
+    "trackColumn": "曲目",
+    "statusColumn": "配對狀態",
+    "matchedBadge": "已配對",
+    "selectTrack": "選取",
+    "deselectTrack": "取消選取",
     "total": "共",
     "foundYoutube": "首 · 找到 YouTube 對應",
     "selected": "首 · 已選",
     "songs": "首",
     "selectAll": "全選",
-    "unselectAll": "取消全選",
+    "unselectAll": "清除",
     "matchFound": "✓",
-    "notFound": "✗ 找不到對應"
+    "notFound": "未找到"
   },
   "download": {
     "downloading": "下載中...",
     "downloadSelected": "下載所選",
+    "downloadSelectedCount": "下載所選 {count} 首歌曲",
     "songsMp3": "首歌曲 (MP3)",
+    "jobLabel": "下載工作",
+    "processed": "已處理 {progress} / {total} 首曲目",
     "status": {
       "pending": "準備中...",
       "downloading": "下載中...",
