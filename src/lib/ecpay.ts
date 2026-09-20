@@ -16,6 +16,8 @@ export interface ECPayOrderParams {
   tradeDesc: string;
   itemName: string;
   choosePayment: "ALL" | "Credit" | "WebATM" | "ATM" | "CVS" | "BARCODE";
+  returnUrl?: string;
+  clientBackUrl?: string;
   orderResultUrl?: string;
 }
 
@@ -71,7 +73,31 @@ function genCheckMacValue(params: Record<string, string | number>, hashKey: stri
   return crypto.createHash("sha256").update(urlEncoded).digest("hex").toUpperCase();
 }
 
+export function getRequestOrigin(request: Request): string {
+  const forwardedHost = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost.split(",")[0].trim()}`;
+  }
+
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (envUrl) {
+    try {
+      return new URL(envUrl).origin;
+    } catch {
+      return envUrl.replace(/\/$/, "");
+    }
+  }
+
+  return "http://localhost:3000";
+}
+
 export function createPaymentForm(orderParams: ECPayOrderParams): ECPayFormData {
+  const returnUrl = orderParams.returnUrl || config.returnUrl;
+  const clientBackUrl = orderParams.clientBackUrl || config.clientBackUrl;
+  const orderResultUrl = orderParams.orderResultUrl;
+
   const params: Record<string, string | number> = {
     MerchantID: config.merchantId,
     MerchantTradeNo: orderParams.merchantTradeNo,
@@ -80,17 +106,17 @@ export function createPaymentForm(orderParams: ECPayOrderParams): ECPayFormData 
     TotalAmount: orderParams.totalAmount,
     TradeDesc: orderParams.tradeDesc,
     ItemName: orderParams.itemName,
-    ReturnURL: config.returnUrl,
+    ReturnURL: returnUrl,
     ChoosePayment: orderParams.choosePayment,
     EncryptType: "1",
   };
 
-  if (config.clientBackUrl) {
-    params.ClientBackURL = config.clientBackUrl;
+  if (clientBackUrl) {
+    params.ClientBackURL = clientBackUrl;
   }
 
-  if (orderParams.orderResultUrl) {
-    params.OrderResultURL = orderParams.orderResultUrl;
+  if (orderResultUrl) {
+    params.OrderResultURL = orderResultUrl;
   }
 
   const checkMacValue = genCheckMacValue(params, config.hashKey, config.hashIv);

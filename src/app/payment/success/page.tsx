@@ -15,6 +15,23 @@ interface OrderData {
   tracks?: string[];
 }
 
+function orderFromQuery(searchParams: URLSearchParams): OrderData | null {
+  const merchantTradeNo = searchParams.get("MerchantTradeNo");
+  if (!merchantTradeNo) return null;
+
+  const rtnCode = searchParams.get("RtnCode");
+  const amount = Number(searchParams.get("TradeAmt") || "0");
+
+  return {
+    merchantTradeNo,
+    amount,
+    itemName: "SpotiGrab 付款",
+    status: rtnCode === "1" ? "paid" : rtnCode ? "failed" : "pending",
+    tradeNo: searchParams.get("TradeNo") || undefined,
+    paymentType: searchParams.get("PaymentType") || undefined,
+  };
+}
+
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -23,42 +40,78 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     const merchantTradeNo = searchParams.get("MerchantTradeNo");
+    const fallback = orderFromQuery(searchParams);
 
     if (!merchantTradeNo) {
-      setError("找不到訂單編號");
+      setError("找不到訂單編號。若付款已完成，請回到首頁重新確認。");
+      setOrder(fallback);
       setLoading(false);
       return;
     }
+
+    let cancelled = false;
+    let pollOrder: ReturnType<typeof setInterval> | undefined;
 
     const fetchOrder = async () => {
       try {
         const res = await fetch(`/api/payment/verify/${merchantTradeNo}`);
         const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data.error || "查詢訂單失敗");
+        if (cancelled) return "cancelled";
+
+        if (res.ok) {
+          setOrder(data);
+          setError(null);
+          return data.status as string;
         }
 
-        setOrder(data);
+        if (fallback) {
+          setOrder(fallback);
+          setError(null);
+          return fallback.status;
+        }
+
+        throw new Error(data.error || "查詢訂單失敗");
       } catch (err) {
+        if (cancelled) return "cancelled";
+        if (fallback) {
+          setOrder(fallback);
+          setError(null);
+          return fallback.status;
+        }
         setError(err instanceof Error ? err.message : "查詢訂單失敗");
+        return "failed";
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    const pollOrder = setInterval(async () => {
-      await fetchOrder();
-    }, 2000);
+    fetchOrder().then((status) => {
+      if (cancelled || status === "paid" || status === "failed" || status === "cancelled") {
+        return;
+      }
 
-    fetchOrder();
+      pollOrder = setInterval(async () => {
+        const nextStatus = await fetchOrder();
+        if (nextStatus === "paid" || nextStatus === "failed") {
+          if (pollOrder) clearInterval(pollOrder);
+        }
+      }, 2000);
 
-    return () => clearInterval(pollOrder);
+      setTimeout(() => {
+        if (pollOrder) clearInterval(pollOrder);
+      }, 30000);
+    });
+
+    return () => {
+      cancelled = true;
+      if (pollOrder) clearInterval(pollOrder);
+    };
   }, [searchParams]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#070908] text-zinc-100 flex items-center justify-center">
         <div className="text-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent mx-auto mb-4" />
           <p className="text-zinc-400">正在確認付款狀態...</p>
@@ -69,7 +122,7 @@ function PaymentSuccessContent() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#070908] text-zinc-100 flex items-center justify-center p-6">
         <div className="max-w-md w-full">
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center">
             <div className="text-4xl mb-4">❌</div>
@@ -91,9 +144,9 @@ function PaymentSuccessContent() {
   const isPending = order.status === "pending";
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#070908] text-zinc-100 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8">
+        <div className="rounded-2xl border border-white/10 bg-[#111411] p-8">
           <div className="text-center mb-6">
             {isPaid && (
               <>
@@ -187,11 +240,8 @@ export default function PaymentSuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent mx-auto mb-4" />
-            <p className="text-zinc-400">正在確認付款狀態...</p>
-          </div>
+        <div className="min-h-screen bg-[#070908] text-zinc-100 flex items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
         </div>
       }
     >

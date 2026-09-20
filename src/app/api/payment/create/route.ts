@@ -4,6 +4,7 @@ import {
   generateMerchantTradeNo,
   formatTradeDate,
   getConfig,
+  getRequestOrigin,
 } from "@/lib/ecpay";
 import { createOrder } from "@/lib/orders";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription";
@@ -38,6 +39,12 @@ export async function POST(request: NextRequest) {
 
     const merchantTradeNo = generateMerchantTradeNo();
     const merchantTradeDate = formatTradeDate();
+    const origin = getRequestOrigin(request);
+    const returnUrl =
+      process.env.ECPAY_RETURN_URL || `${origin}/api/payment/callback`;
+    const clientBackUrl =
+      process.env.ECPAY_CLIENT_BACK_URL || `${origin}/payment/success`;
+    const orderResultUrl = `${origin}/api/payment/result`;
 
     const formData = createPaymentForm({
       merchantTradeNo,
@@ -46,6 +53,9 @@ export async function POST(request: NextRequest) {
       tradeDesc: planId === "payPerTrack" ? "SpotiGrab 單曲下載" : "SpotiGrab 訂閱服務",
       itemName,
       choosePayment: "ALL",
+      returnUrl,
+      clientBackUrl,
+      orderResultUrl,
     });
 
     createOrder({
@@ -100,7 +110,13 @@ export async function POST(request: NextRequest) {
   </div>
   <form id="ecpayForm" method="post" action="${config.apiUrl}">
     ${Object.entries(formData)
-      .map(([key, value]) => `<input type="hidden" name="${key}" value="${value}" />`)
+      .map(
+        ([key, value]) =>
+          `<input type="hidden" name="${key}" value="${String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")}" />`
+      )
       .join("\n    ")}
   </form>
   <script>
