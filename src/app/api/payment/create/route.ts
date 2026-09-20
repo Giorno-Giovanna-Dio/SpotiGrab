@@ -6,18 +6,34 @@ import {
   getConfig,
 } from "@/lib/ecpay";
 import { createOrder } from "@/lib/orders";
+import { SUBSCRIPTION_PLANS } from "@/lib/subscription";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { amount, itemName, tracks } = body;
+    const { planId, trackCount, tracks } = body;
 
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ error: "無效的金額" }, { status: 400 });
+    if (!planId) {
+      return NextResponse.json({ error: "缺少方案 ID" }, { status: 400 });
     }
 
-    if (!itemName) {
-      return NextResponse.json({ error: "缺少商品名稱" }, { status: 400 });
+    const plan = SUBSCRIPTION_PLANS[planId];
+    if (!plan) {
+      return NextResponse.json({ error: "無效的方案" }, { status: 400 });
+    }
+
+    let amount: number;
+    let itemName: string;
+
+    if (planId === "payPerTrack") {
+      if (!trackCount || trackCount <= 0) {
+        return NextResponse.json({ error: "無效的歌曲數量" }, { status: 400 });
+      }
+      amount = plan.price * trackCount;
+      itemName = `SpotiGrab 單曲下載 ${trackCount} 首`;
+    } else {
+      amount = plan.price;
+      itemName = `SpotiGrab ${plan.name}訂閱`;
     }
 
     const merchantTradeNo = generateMerchantTradeNo();
@@ -27,7 +43,7 @@ export async function POST(request: NextRequest) {
       merchantTradeNo,
       merchantTradeDate,
       totalAmount: amount,
-      tradeDesc: "SpotiGrab 歌曲下載",
+      tradeDesc: planId === "payPerTrack" ? "SpotiGrab 單曲下載" : "SpotiGrab 訂閱服務",
       itemName,
       choosePayment: "ALL",
     });
