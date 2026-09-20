@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useTranslations } from 'next-intl';
 import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
 import DownloadProgress from "@/components/DownloadProgress";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { TrackWithMatch } from "@/lib/types";
 
 interface PlaylistData {
@@ -14,6 +16,7 @@ interface PlaylistData {
 }
 
 export default function Home() {
+  const t = useTranslations();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +59,13 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? "解析失敗");
+        throw new Error(data.error ?? t('errors.analysisFailed'));
       }
 
       setPlaylist(data);
       setTracks(data.tracks);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "發生未知錯誤");
+      setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -101,7 +104,7 @@ export default function Home() {
         } catch {
           stopPolling();
           setDownloading(false);
-          setJobError("無法取得下載狀態");
+          setJobError(t('errors.statusFailed'));
         }
       }, 1500);
     },
@@ -126,7 +129,7 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? "下載失敗");
+        throw new Error(data.error ?? t('errors.downloadFailed'));
       }
 
       setJobId(data.jobId);
@@ -134,7 +137,7 @@ export default function Home() {
       pollJobStatus(data.jobId);
     } catch (err) {
       setDownloading(false);
-      setError(err instanceof Error ? err.message : "下載失敗");
+      setError(err instanceof Error ? err.message : t('errors.downloadFailed'));
     }
   };
 
@@ -159,17 +162,20 @@ export default function Home() {
       </div>
 
       <main className="relative mx-auto max-w-3xl px-6 py-16">
+        <div className="absolute right-6 top-6">
+          <LanguageSwitcher />
+        </div>
+        
         <header className="mb-12 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Spotify → YouTube → MP3
+            {t('home.badge')}
           </div>
           <h1 className="mb-3 text-4xl font-bold tracking-tight">
             Spoti<span className="text-emerald-400">Grab</span>
           </h1>
           <p className="mx-auto max-w-lg text-zinc-400">
-            貼上 Spotify 播放清單，自動在 YouTube 找到對應曲目並下載到本地端。
-            再也不用手動一首首搜尋了。
+            {t('home.subtitle')}
           </p>
         </header>
 
@@ -190,8 +196,8 @@ export default function Home() {
           {loading && (
             <div className="flex flex-col items-center gap-3 py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-              <p className="text-sm text-zinc-400">正在解析播放清單並搜尋 YouTube 對應...</p>
-              <p className="text-xs text-zinc-600">曲目較多時可能需要一兩分鐘</p>
+              <p className="text-sm text-zinc-400">{t('loading.analyzing')}</p>
+              <p className="text-xs text-zinc-600">{t('loading.hint')}</p>
             </div>
           )}
 
@@ -208,11 +214,11 @@ export default function Home() {
                 <div>
                   <h2 className="text-lg font-semibold">{playlist.playlistName}</h2>
                   <p className="text-sm text-zinc-500">
-                    {playlist.stats.matched}/{playlist.stats.total} 首找到 YouTube 對應
+                    {playlist.stats.matched}/{playlist.stats.total} {t('playlist.matched')}
                     {playlist.stats.unmatched > 0 && (
                       <span className="text-amber-500/80">
                         {" "}
-                        · {playlist.stats.unmatched} 首未找到
+                        · {playlist.stats.unmatched} {t('playlist.unmatched')}
                       </span>
                     )}
                   </p>
@@ -228,8 +234,8 @@ export default function Home() {
                   className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {downloading
-                    ? "下載中..."
-                    : `下載所選 ${selectedCount} 首歌曲 (MP3)`}
+                    ? t('download.downloading')
+                    : `${t('download.downloadSelected')} ${selectedCount} ${t('download.songsMp3')}`}
                 </button>
               )}
 
@@ -249,7 +255,7 @@ export default function Home() {
         </div>
 
         <footer className="mt-16 border-t border-zinc-800/60 pt-8 text-center text-xs text-zinc-600">
-          <p>僅供個人備份使用。請尊重音樂創作者版權，支持正版音樂平台。</p>
+          <p>{t('home.footer')}</p>
         </footer>
       </main>
     </div>

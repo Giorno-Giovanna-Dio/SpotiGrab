@@ -10,6 +10,7 @@
 - 自動在 YouTube 搜尋每首歌的最佳對應
 - 可勾選/取消個別曲目
 - 批次下載為 MP3 並打包成 ZIP
+- **🌏 支援中英文雙語介面** - 使用者可自由切換繁體中文與英文
 
 ## 前置需求
 
@@ -51,9 +52,21 @@ npm run dev
 ## 技術架構
 
 - **前端：** Next.js 16 + React 19 + Tailwind CSS
+- **國際化：** next-intl（支援繁體中文/英文）
 - **Spotify API：** Client Credentials 流程讀取公開播放清單
 - **YouTube 搜尋：** yt-search
 - **下載：** yt-dlp（音訊轉 MP3）
+
+## 語言支援
+
+SpotiGrab 支援多語言介面:
+
+- 🇹🇼 繁體中文（預設）
+- 🇺🇸 English
+
+使用者可透過頁面右上角的語言切換器隨時切換語言。語言偏好會自動儲存。
+
+詳細說明請參閱 [I18N_GUIDE.md](./I18N_GUIDE.md)
 
 ## 免責聲明
 
