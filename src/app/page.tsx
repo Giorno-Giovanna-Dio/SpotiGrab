@@ -6,6 +6,7 @@ import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
 import DownloadProgress from "@/components/DownloadProgress";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import PricingModal from "@/components/PricingModal";
 import type { TrackWithMatch } from "@/lib/types";
 
 interface PlaylistData {
@@ -29,6 +30,8 @@ export default function Home() {
   const [jobTotal, setJobTotal] = useState(0);
   const [downloadReady, setDownloadReady] = useState(false);
   const [jobError, setJobError] = useState<string | undefined>();
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -155,6 +158,45 @@ export default function Home() {
     setDownloadReady(false);
     setJobError(undefined);
     setDownloading(false);
+  };
+
+  const handleSelectPlan = async (planId: string, trackCount?: number) => {
+    setPaymentLoading(true);
+    setError(null);
+    setShowPricingModal(false);
+
+    try {
+      const selectedTracks = tracks.filter((track) => track.selected);
+      const trackIds = selectedTracks.map((track) => track.id);
+
+      const res = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId,
+          trackCount: trackCount || selectedTracks.length,
+          tracks: trackIds,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? t("errors.paymentFailed"));
+      }
+
+      const html = await res.text();
+      const newWindow = window.open("", "_blank");
+      if (newWindow) {
+        newWindow.document.write(html);
+        newWindow.document.close();
+      } else {
+        throw new Error(t("errors.popupBlocked"));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errors.paymentFailed"));
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   const selectedCount = tracks.filter((track) => track.selected).length;
@@ -343,20 +385,63 @@ export default function Home() {
               <TrackList tracks={tracks} onToggle={handleToggle} onToggleAll={handleToggleAll} />
 
               {!jobId && (
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading || selectedCount === 0}
-                  className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-semibold text-emerald-950 shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-300 active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {downloading
-                    ? t("download.downloading")
-                    : t("download.downloadSelectedCount", { count: selectedCount })}
-                  {!downloading && (
-                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" />
-                    </svg>
-                  )}
-                </button>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-5 sm:p-6">
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/15 text-lg">
+                        💎
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-semibold text-emerald-300">
+                          {t("payment.upgradeTitle")}
+                        </h3>
+                        <p className="mt-1 text-sm text-zinc-400">
+                          {t("payment.upgradeDescription")}
+                        </p>
+                        <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                          <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
+                            <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+                              {t("payment.monthly")}
+                            </div>
+                            <div className="mt-1 text-sm font-semibold text-white">NT$ 99</div>
+                          </div>
+                          <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-center">
+                            <div className="text-[10px] uppercase tracking-wide text-emerald-300">
+                              {t("payment.quarterly")}
+                            </div>
+                            <div className="mt-1 text-sm font-semibold text-white">NT$ 249</div>
+                          </div>
+                          <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
+                            <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+                              {t("payment.yearly")}
+                            </div>
+                            <div className="mt-1 text-sm font-semibold text-white">NT$ 899</div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setShowPricingModal(true)}
+                          disabled={paymentLoading || selectedCount === 0}
+                          className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-emerald-400 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {paymentLoading ? t("payment.processing") : t("payment.viewPlans")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleDownload}
+                    disabled={downloading || selectedCount === 0}
+                    className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {downloading
+                      ? t("download.downloading")
+                      : t("download.freeDownloadCount", { count: selectedCount })}
+                  </button>
+                  <p className="text-center text-xs text-zinc-500">
+                    {t("payment.freeHint")}
+                  </p>
+                </div>
               )}
 
               {jobId && (
@@ -381,6 +466,13 @@ export default function Home() {
           <p>{t("home.footer")}</p>
         </div>
       </footer>
+
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        onSelectPlan={handleSelectPlan}
+        trackCount={selectedCount}
+      />
     </div>
   );
 }

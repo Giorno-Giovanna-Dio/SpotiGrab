@@ -74,13 +74,26 @@
       "failed": "Download Failed"
     },
     "downloadZip": "Download ZIP File",
-    "reset": "Start Over"
+    "reset": "Start Over",
+    "freeDownloadCount": "Free download {count} songs"
+  },
+  "payment": {
+    "upgradeTitle": "Go premium for unlimited downloads",
+    "upgradeDescription": "Choose monthly, quarterly, or yearly — or pay per track.",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "yearly": "Yearly",
+    "processing": "Processing...",
+    "viewPlans": "View plans",
+    "freeHint": "Free plan: 3 songs per day, no signup required"
   },
   "errors": {
     "analysisFailed": "Analysis failed",
     "unknownError": "Unknown error occurred",
     "downloadFailed": "Download failed",
-    "statusFailed": "Unable to get download status"
+    "statusFailed": "Unable to get download status",
+    "paymentFailed": "Failed to create payment order",
+    "popupBlocked": "Could not open the payment window. Please allow pop-ups for this site."
   },
   "language": {
     "switch": "Switch Language"

@@ -74,13 +74,26 @@
       "failed": "下載失敗"
     },
     "downloadZip": "下載 ZIP 檔案",
-    "reset": "重新開始"
+    "reset": "重新開始",
+    "freeDownloadCount": "免費下載 {count} 首歌曲"
+  },
+  "payment": {
+    "upgradeTitle": "升級會員，無限下載",
+    "upgradeDescription": "月費、季度或年度方案，也支援單曲付費。",
+    "monthly": "月費",
+    "quarterly": "季度",
+    "yearly": "年度",
+    "processing": "處理中...",
+    "viewPlans": "查看方案",
+    "freeHint": "免費方案每日限額 3 首，無需註冊"
   },
   "errors": {
     "analysisFailed": "解析失敗",
     "unknownError": "發生未知錯誤",
     "downloadFailed": "下載失敗",
-    "statusFailed": "無法取得下載狀態"
+    "statusFailed": "無法取得下載狀態",
+    "paymentFailed": "建立付款訂單失敗",
+    "popupBlocked": "無法開啟付款視窗，請允許此網站的彈出視窗"
   },
   "language": {
     "switch": "切換語言"
