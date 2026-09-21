@@ -33,7 +33,7 @@ export default function PricingModal({
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold mb-2">選擇您的方案</h2>
-              <p className="text-zinc-400">選擇最適合您的下載方案</p>
+              <p className="text-zinc-400">選擇最適合您的轉換方案</p>
             </div>
             <button
               onClick={onClose}
@@ -109,7 +109,7 @@ export default function PricingModal({
                   省 NT$ 48（相當於 83 折）
                 </p>
                 <p className="text-sm text-zinc-400 mb-4">
-                  三個月無限下載，最划算選擇
+                  三個月無限轉換，最划算選擇
                 </p>
               </div>
               <ul className="space-y-3 mb-6">
@@ -179,7 +179,7 @@ export default function PricingModal({
               <div>
                 <h3 className="text-lg font-bold mb-1">單曲付費</h3>
                 <p className="text-sm text-zinc-400">
-                  只下載這次選的 {trackCount} 首歌曲
+                  解鎖這次選的 {trackCount} 首完整轉換
                 </p>
               </div>
               <div className="text-right">

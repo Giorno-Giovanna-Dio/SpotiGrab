@@ -23,26 +23,6 @@ export interface TrackWithMatch extends SpotifyTrack {
   selected: boolean;
 }
 
-export type JobStatus = "pending" | "searching" | "downloading" | "zipping" | "completed" | "failed";
-
-export interface TrackDownloadStatus {
-  trackId: string;
-  name: string;
-  status: "pending" | "downloading" | "completed" | "failed" | "skipped";
-  error?: string;
-}
-
-export interface DownloadJob {
-  id: string;
-  status: JobStatus;
-  progress: number;
-  total: number;
-  tracks: TrackDownloadStatus[];
-  zipPath?: string;
-  error?: string;
-  createdAt: number;
-}
-
 export interface PlaylistResponse {
   playlistName: string;
   playlistImage?: string;

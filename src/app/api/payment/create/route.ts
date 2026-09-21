@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "無效的歌曲數量" }, { status: 400 });
       }
       amount = plan.price * trackCount;
-      itemName = `SpotiGrab 單曲下載 ${trackCount} 首`;
+      itemName = `SpotiGrab 單次轉換 ${trackCount} 首`;
     } else {
       amount = plan.price;
       itemName = `SpotiGrab ${plan.name}訂閱`;
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       merchantTradeNo,
       merchantTradeDate,
       totalAmount: amount,
-      tradeDesc: planId === "payPerTrack" ? "SpotiGrab 單曲下載" : "SpotiGrab 訂閱服務",
+      tradeDesc: planId === "payPerTrack" ? "SpotiGrab 單次轉換" : "SpotiGrab 訂閱服務",
       itemName,
       choosePayment: "ALL",
       returnUrl,

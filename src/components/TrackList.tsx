@@ -87,10 +87,16 @@ export default function TrackList({ tracks, onToggle, onToggleAll }: TrackListPr
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     {t("matchedBadge")}
                   </span>
-                  <p className="hidden truncate text-xs text-zinc-400 sm:block" title={track.youtube.title}>
+                  <a
+                    href={track.youtube.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden truncate text-xs text-zinc-400 transition hover:text-emerald-300 sm:block"
+                    title={track.youtube.title}
+                  >
                     <span className="mr-1.5 text-emerald-400">●</span>
                     {track.youtube.title}
-                  </p>
+                  </a>
                 </>
               ) : (
                 <span className="inline-flex rounded-full border border-amber-400/15 bg-amber-400/8 px-2 py-1 text-[10px] font-medium text-amber-300">

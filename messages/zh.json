@@ -1,13 +1,13 @@
 {
   "home": {
-    "badge": "Spotify → YouTube → MP3",
+    "badge": "Spotify → YouTube 播放清單",
     "title": "SpotiGrab",
-    "subtitle": "貼上 Spotify 播放清單,自動在 YouTube 找到對應曲目並下載到本地端。再也不用手動一首首搜尋了。",
-    "footer": "僅供個人備份使用。請尊重音樂創作者版權,支持正版音樂平台。",
-    "heroBadge": "更快整理你的音樂收藏",
-    "heroTitle": "播放清單，一次帶走。",
-    "heroTitleAccent": "簡單、快速、清楚。",
-    "heroDescription": "貼上 Spotify 播放清單，我們會自動搜尋對應音源、整理曲目，並打包成一份方便保存的 ZIP 檔案。",
+    "subtitle": "貼上 Spotify 播放清單，自動在 YouTube 找到對應曲目，一鍵複製全部連結。",
+    "footer": "本工具僅協助整理播放清單連結。請尊重音樂創作者版權，支持正版音樂平台。",
+    "heroBadge": "Spotify 播放清單 → YouTube 連結",
+    "heroTitle": "播放清單，",
+    "heroTitleAccent": "一鍵轉成 YouTube 連結。",
+    "heroDescription": "貼上 Spotify 播放清單，我們會自動搜尋每首歌在 YouTube 的對應影片，讓你一次複製全部連結，輕鬆建立 YouTube 播放清單。",
     "featureNoLogin": "無需登入",
     "featureBatchMatch": "批次配對",
     "featureFreeSelect": "自由選取",
@@ -17,20 +17,20 @@
     "importTitle": "匯入播放清單",
     "step1Title": "貼上連結",
     "step1Desc": "輸入公開的 Spotify 播放清單網址",
-    "step2Title": "確認曲目",
-    "step2Desc": "檢視配對結果並選擇需要的歌曲",
-    "step3Title": "下載收藏",
-    "step3Desc": "完成後一次取得整理好的 ZIP 檔案"
+    "step2Title": "確認配對",
+    "step2Desc": "檢視每首歌的 YouTube 對應結果",
+    "step3Title": "複製連結",
+    "step3Desc": "一鍵複製全部 YouTube 連結，手動建立播放清單"
   },
   "playlistInput": {
     "label": "Spotify 播放清單網址",
     "placeholder": "https://open.spotify.com/playlist/...",
     "analyzing": "解析中...",
-    "analyze": "解析清單",
+    "analyze": "開始轉換",
     "hint": "支援公開播放清單，無需登入 Spotify。"
   },
   "loading": {
-    "analyzing": "正在分析並配對曲目",
+    "analyzing": "正在分析並配對 YouTube 影片",
     "hint": "曲目較多時可能需要一兩分鐘，請保持此頁開啟"
   },
   "playlist": {
@@ -43,10 +43,10 @@
     "unmatched": "首未找到"
   },
   "trackList": {
-    "title": "曲目配對結果",
+    "title": "YouTube 配對結果",
     "summary": "{matched} 首已配對 · {selected} 首已選取",
     "trackColumn": "曲目",
-    "statusColumn": "配對狀態",
+    "statusColumn": "YouTube 對應",
     "matchedBadge": "已配對",
     "selectTrack": "選取",
     "deselectTrack": "取消選取",
@@ -59,39 +59,27 @@
     "matchFound": "✓",
     "notFound": "未找到"
   },
-  "download": {
-    "downloading": "下載中...",
-    "downloadSelected": "下載所選",
-    "downloadSelectedCount": "下載所選 {count} 首歌曲",
-    "songsMp3": "首歌曲 (MP3)",
-    "jobLabel": "下載工作",
-    "processed": "已處理 {progress} / {total} 首曲目",
-    "status": {
-      "pending": "準備中...",
-      "downloading": "下載中...",
-      "zipping": "打包 ZIP 中...",
-      "completed": "下載完成!",
-      "failed": "下載失敗"
-    },
-    "downloadZip": "下載 ZIP 檔案",
-    "reset": "重新開始",
-    "freeDownloadCount": "免費下載 {count} 首歌曲"
+  "convert": {
+    "copyAllLinks": "複製全部 YouTube 連結",
+    "copySelectedLinks": "複製所選 {count} 個連結",
+    "copied": "已複製！",
+    "copyFailed": "複製失敗，請手動選取",
+    "linkCount": "{count} 個 YouTube 連結",
+    "openOnYoutube": "在 YouTube 開啟"
   },
   "payment": {
-    "upgradeTitle": "升級會員，無限下載",
-    "upgradeDescription": "月費、季度或年度方案，也支援單曲付費。",
+    "upgradeTitle": "升級會員，無限轉換",
+    "upgradeDescription": "解鎖完整清單轉換與一鍵複製全部連結。",
     "monthly": "月費",
     "quarterly": "季度",
     "yearly": "年度",
     "processing": "處理中...",
     "viewPlans": "查看方案",
-    "freeHint": "免費方案每日限額 3 首，無需註冊"
+    "freeHint": "免費方案：每日 3 次轉換，每次最多 10 首"
   },
   "errors": {
     "analysisFailed": "解析失敗",
     "unknownError": "發生未知錯誤",
-    "downloadFailed": "下載失敗",
-    "statusFailed": "無法取得下載狀態",
     "paymentFailed": "建立付款訂單失敗",
     "popupBlocked": "無法開啟付款視窗，請允許此網站的彈出視窗"
   },

@@ -219,7 +219,7 @@ function PaymentSuccessContent() {
           {isPaid && (
             <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 mb-6">
               <p className="text-sm text-emerald-300">
-                付款完成後，您可以開始下載您購買的歌曲。
+                付款完成！返回首頁即可開始完整轉換並複製 YouTube 連結。
               </p>
             </div>
           )}

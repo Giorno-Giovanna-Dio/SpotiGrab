@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SpotiGrab — Spotify Playlist Downloader",
-  description: "Paste a Spotify playlist link and automatically download matching tracks from YouTube as MP3.",
+  title: "SpotiGrab — Spotify to YouTube Playlist Converter",
+  description: "Paste a Spotify playlist link and get matching YouTube video links. Copy all links in one click.",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

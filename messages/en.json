@@ -1,13 +1,13 @@
 {
   "home": {
-    "badge": "Spotify → YouTube → MP3",
+    "badge": "Spotify → YouTube Playlist",
     "title": "SpotiGrab",
-    "subtitle": "Paste a Spotify playlist link and automatically find matching tracks on YouTube to download locally. No more manual searching, one by one.",
-    "footer": "For personal backup use only. Please respect music creators' copyrights and support official music platforms.",
-    "heroBadge": "Organize your music faster",
-    "heroTitle": "Take your playlist with you.",
-    "heroTitleAccent": "Simple, fast, clear.",
-    "heroDescription": "Paste a Spotify playlist and we'll find matching sources, organize tracks, and pack them into a convenient ZIP file.",
+    "subtitle": "Paste a Spotify playlist and automatically find matching YouTube videos — copy all links in one click.",
+    "footer": "This tool helps organize playlist links only. Please respect music creators' copyrights and support official platforms.",
+    "heroBadge": "Spotify playlist → YouTube links",
+    "heroTitle": "Your playlist,",
+    "heroTitleAccent": "converted to YouTube links.",
+    "heroDescription": "Paste a Spotify playlist and we'll find the matching YouTube video for each track. Copy all links at once and build your YouTube playlist easily.",
     "featureNoLogin": "No login required",
     "featureBatchMatch": "Batch matching",
     "featureFreeSelect": "Free selection",
@@ -17,20 +17,20 @@
     "importTitle": "Import playlist",
     "step1Title": "Paste link",
     "step1Desc": "Enter a public Spotify playlist URL",
-    "step2Title": "Review tracks",
-    "step2Desc": "Check match results and select the songs you need",
-    "step3Title": "Download",
-    "step3Desc": "Get a neatly organized ZIP file when done"
+    "step2Title": "Review matches",
+    "step2Desc": "Check each track's YouTube match result",
+    "step3Title": "Copy links",
+    "step3Desc": "Copy all YouTube links and create your playlist"
   },
   "playlistInput": {
     "label": "Spotify playlist URL",
     "placeholder": "https://open.spotify.com/playlist/...",
     "analyzing": "Analyzing...",
-    "analyze": "Analyze",
+    "analyze": "Convert",
     "hint": "Supports public playlists. No Spotify login required."
   },
   "loading": {
-    "analyzing": "Analyzing and matching tracks",
+    "analyzing": "Analyzing and matching YouTube videos",
     "hint": "Larger playlists may take a minute or two. Please keep this page open."
   },
   "playlist": {
@@ -43,10 +43,10 @@
     "unmatched": "not found"
   },
   "trackList": {
-    "title": "Track matching results",
+    "title": "YouTube match results",
     "summary": "{matched} matched · {selected} selected",
     "trackColumn": "Track",
-    "statusColumn": "Match status",
+    "statusColumn": "YouTube match",
     "matchedBadge": "Matched",
     "selectTrack": "Select",
     "deselectTrack": "Deselect",
@@ -59,39 +59,27 @@
     "matchFound": "✓",
     "notFound": "Not found"
   },
-  "download": {
-    "downloading": "Downloading...",
-    "downloadSelected": "Download Selected",
-    "downloadSelectedCount": "Download {count} selected songs",
-    "songsMp3": "Songs (MP3)",
-    "jobLabel": "Download job",
-    "processed": "Processed {progress} / {total} tracks",
-    "status": {
-      "pending": "Preparing...",
-      "downloading": "Downloading...",
-      "zipping": "Creating ZIP...",
-      "completed": "Download Complete!",
-      "failed": "Download Failed"
-    },
-    "downloadZip": "Download ZIP File",
-    "reset": "Start Over",
-    "freeDownloadCount": "Free download {count} songs"
+  "convert": {
+    "copyAllLinks": "Copy all YouTube links",
+    "copySelectedLinks": "Copy {count} selected links",
+    "copied": "Copied!",
+    "copyFailed": "Copy failed — please select manually",
+    "linkCount": "{count} YouTube links",
+    "openOnYoutube": "Open on YouTube"
   },
   "payment": {
-    "upgradeTitle": "Go premium for unlimited downloads",
-    "upgradeDescription": "Choose monthly, quarterly, or yearly — or pay per track.",
+    "upgradeTitle": "Go premium for unlimited conversions",
+    "upgradeDescription": "Unlock full playlist conversion and one-click copy.",
     "monthly": "Monthly",
     "quarterly": "Quarterly",
     "yearly": "Yearly",
     "processing": "Processing...",
     "viewPlans": "View plans",
-    "freeHint": "Free plan: 3 songs per day, no signup required"
+    "freeHint": "Free plan: 3 conversions/day, up to 10 tracks each"
   },
   "errors": {
     "analysisFailed": "Analysis failed",
     "unknownError": "Unknown error occurred",
-    "downloadFailed": "Download failed",
-    "statusFailed": "Unable to get download status",
     "paymentFailed": "Failed to create payment order",
     "popupBlocked": "Could not open the payment window. Please allow pop-ups for this site."
   },

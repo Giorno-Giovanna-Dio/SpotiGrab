@@ -4,7 +4,7 @@ export interface SubscriptionPlan {
   price: number;
   duration: number;
   features: string[];
-  downloadLimit: number | "unlimited";
+  conversionLimit: number | "unlimited";
 }
 
 export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
@@ -13,16 +13,16 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     name: "免費方案",
     price: 0,
     duration: 0,
-    features: ["每日 3 首下載限額", "標準音質", "廣告支持"],
-    downloadLimit: 3,
+    features: ["每日 3 次轉換", "每次最多 10 首預覽", "複製 YouTube 連結"],
+    conversionLimit: 3,
   },
   monthly: {
     id: "monthly",
     name: "月費會員",
     price: 99,
     duration: 30,
-    features: ["無限下載", "高音質 MP3", "批次下載", "無廣告", "優先客服"],
-    downloadLimit: "unlimited",
+    features: ["無限轉換次數", "不限首數", "一鍵複製全部連結", "無廣告", "優先客服"],
+    conversionLimit: "unlimited",
   },
   quarterly: {
     id: "quarterly",
@@ -30,14 +30,14 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     price: 249,
     duration: 90,
     features: [
-      "無限下載",
-      "高音質 MP3",
-      "批次下載",
+      "無限轉換次數",
+      "不限首數",
+      "一鍵複製全部連結",
       "無廣告",
       "優先客服",
       "省 16%（原價 NT$ 297）",
     ],
-    downloadLimit: "unlimited",
+    conversionLimit: "unlimited",
   },
   yearly: {
     id: "yearly",
@@ -45,22 +45,22 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     price: 899,
     duration: 365,
     features: [
-      "無限下載",
-      "高音質 MP3",
-      "批次下載",
+      "無限轉換次數",
+      "不限首數",
+      "一鍵複製全部連結",
       "無廣告",
       "優先客服",
       "省 25%（原價 NT$ 1,188）",
     ],
-    downloadLimit: "unlimited",
+    conversionLimit: "unlimited",
   },
   payPerTrack: {
     id: "payPerTrack",
-    name: "單曲付費",
+    name: "單次解鎖",
     price: 10,
     duration: 0,
-    features: ["單次下載", "高音質 MP3", "不限時效"],
-    downloadLimit: 0,
+    features: ["單次完整轉換", "不限首數", "複製全部 YouTube 連結"],
+    conversionLimit: 0,
   },
 };
 
@@ -122,28 +122,36 @@ export function isSubscriptionActive(userId: string): boolean {
   return true;
 }
 
-export function canDownload(userId: string, trackCount: number = 1): {
+export function canConvert(userId: string, trackCount: number = 1): {
   allowed: boolean;
   reason?: string;
-  remainingDownloads?: number;
+  remainingConversions?: number;
 } {
   const subscription = getSubscription(userId);
 
   if (!subscription || subscription.planId === "free") {
-    const dailyDownloads = getDailyDownloadCount(userId);
-    const remaining = 3 - dailyDownloads;
+    const dailyConversions = getDailyConversionCount(userId);
+    const remaining = 3 - dailyConversions;
 
-    if (dailyDownloads + trackCount > 3) {
+    if (dailyConversions + 1 > 3) {
       return {
         allowed: false,
-        reason: "已達每日免費下載限額（3 首）",
-        remainingDownloads: Math.max(0, remaining),
+        reason: "已達每日免費轉換限額（3 次）",
+        remainingConversions: Math.max(0, remaining),
+      };
+    }
+
+    if (trackCount > 10) {
+      return {
+        allowed: false,
+        reason: "免費方案每次最多轉換 10 首，請升級以解鎖完整清單",
+        remainingConversions: Math.max(0, remaining),
       };
     }
 
     return {
       allowed: true,
-      remainingDownloads: remaining - trackCount,
+      remainingConversions: remaining - 1,
     };
   }
 
@@ -155,18 +163,18 @@ export function canDownload(userId: string, trackCount: number = 1): {
   }
 
   const plan = SUBSCRIPTION_PLANS[subscription.planId];
-  if (plan.downloadLimit === "unlimited") {
+  if (plan.conversionLimit === "unlimited") {
     return { allowed: true };
   }
 
   return { allowed: true };
 }
 
-const dailyDownloads = new Map<string, { date: string; count: number }>();
+const dailyConversions = new Map<string, { date: string; count: number }>();
 
-function getDailyDownloadCount(userId: string): number {
+function getDailyConversionCount(userId: string): number {
   const today = new Date().toISOString().split("T")[0];
-  const record = dailyDownloads.get(userId);
+  const record = dailyConversions.get(userId);
 
   if (!record || record.date !== today) {
     return 0;
@@ -175,15 +183,15 @@ function getDailyDownloadCount(userId: string): number {
   return record.count;
 }
 
-export function recordDownload(userId: string, trackCount: number = 1): void {
+export function recordConversion(userId: string): void {
   const today = new Date().toISOString().split("T")[0];
-  const record = dailyDownloads.get(userId);
+  const record = dailyConversions.get(userId);
 
   if (!record || record.date !== today) {
-    dailyDownloads.set(userId, { date: today, count: trackCount });
+    dailyConversions.set(userId, { date: today, count: 1 });
   } else {
-    record.count += trackCount;
-    dailyDownloads.set(userId, record);
+    record.count += 1;
+    dailyConversions.set(userId, record);
   }
 }
 

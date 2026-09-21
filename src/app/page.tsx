@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
-import DownloadProgress from "@/components/DownloadProgress";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import PricingModal from "@/components/PricingModal";
 import type { TrackWithMatch } from "@/lib/types";
@@ -23,34 +22,16 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [playlist, setPlaylist] = useState<PlaylistData | null>(null);
   const [tracks, setTracks] = useState<TrackWithMatch[]>([]);
-  const [downloading, setDownloading] = useState(false);
-  const [jobId, setJobId] = useState<string | null>(null);
-  const [jobStatus, setJobStatus] = useState<string>("");
-  const [jobProgress, setJobProgress] = useState(0);
-  const [jobTotal, setJobTotal] = useState(0);
-  const [downloadReady, setDownloadReady] = useState(false);
-  const [jobError, setJobError] = useState<string | undefined>();
+  const [copied, setCopied] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => () => stopPolling(), [stopPolling]);
 
   const handleAnalyze = async () => {
     setLoading(true);
     setError(null);
     setPlaylist(null);
     setTracks([]);
-    stopPolling();
-    setJobId(null);
-    setDownloadReady(false);
+    setCopied(false);
 
     try {
       const res = await fetch("/api/playlist", {
@@ -91,73 +72,20 @@ export default function Home() {
     );
   };
 
-  const pollJobStatus = useCallback(
-    (id: string) => {
-      stopPolling();
-      pollRef.current = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/download/${id}`);
-          const data = await res.json();
+  const handleCopyLinks = async () => {
+    const links = tracks
+      .filter((track) => track.selected && track.youtube)
+      .map((track) => track.youtube!.url);
 
-          setJobStatus(data.status);
-          setJobProgress(data.progress);
-          setJobTotal(data.total);
-          setDownloadReady(data.downloadReady);
-          setJobError(data.error);
-
-          if (data.status === "completed" || data.status === "failed") {
-            stopPolling();
-            setDownloading(false);
-          }
-        } catch {
-          stopPolling();
-          setDownloading(false);
-          setJobError(t("errors.statusFailed"));
-        }
-      }, 1500);
-    },
-    [stopPolling, t]
-  );
-
-  const handleDownload = async () => {
-    setDownloading(true);
-    setError(null);
-    setDownloadReady(false);
-    setJobError(undefined);
-    setJobStatus("pending");
-    setJobProgress(0);
+    if (links.length === 0) return;
 
     try {
-      const res = await fetch("/api/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tracks }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error ?? t("errors.downloadFailed"));
-      }
-
-      setJobId(data.jobId);
-      setJobTotal(data.total);
-      pollJobStatus(data.jobId);
-    } catch (err) {
-      setDownloading(false);
-      setError(err instanceof Error ? err.message : t("errors.downloadFailed"));
+      await navigator.clipboard.writeText(links.join("\n"));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setError(t("convert.copyFailed"));
     }
-  };
-
-  const handleReset = () => {
-    stopPolling();
-    setJobId(null);
-    setJobStatus("");
-    setJobProgress(0);
-    setJobTotal(0);
-    setDownloadReady(false);
-    setJobError(undefined);
-    setDownloading(false);
   };
 
   const handleSelectPlan = async (planId: string, trackCount?: number) => {
@@ -199,7 +127,7 @@ export default function Home() {
     }
   };
 
-  const selectedCount = tracks.filter((track) => track.selected).length;
+  const selectedCount = tracks.filter((track) => track.selected && track.youtube).length;
   const heroFeatures = [
     t("home.featureNoLogin"),
     t("home.featureBatchMatch"),
@@ -384,77 +312,80 @@ export default function Home() {
 
               <TrackList tracks={tracks} onToggle={handleToggle} onToggleAll={handleToggleAll} />
 
-              {!jobId && (
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-5 sm:p-6">
-                    <div className="flex items-start gap-4">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/15 text-lg">
-                        💎
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-semibold text-emerald-300">
-                          {t("payment.upgradeTitle")}
-                        </h3>
-                        <p className="mt-1 text-sm text-zinc-400">
-                          {t("payment.upgradeDescription")}
-                        </p>
-                        <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-                          <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
-                            <div className="text-[10px] uppercase tracking-wide text-zinc-500">
-                              {t("payment.monthly")}
-                            </div>
-                            <div className="mt-1 text-sm font-semibold text-white">NT$ 99</div>
+              <div className="space-y-4">
+                <button
+                  onClick={handleCopyLinks}
+                  disabled={selectedCount === 0}
+                  className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {copied ? (
+                    <>
+                      <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m5 10 3 3 7-7" />
+                      </svg>
+                      {t("convert.copied")}
+                    </>
+                  ) : (
+                    <>
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path strokeLinecap="round" d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      {t("convert.copySelectedLinks", { count: selectedCount })}
+                    </>
+                  )}
+                </button>
+                <p className="text-center text-xs text-zinc-500">
+                  {t("convert.linkCount", { count: selectedCount })}
+                </p>
+
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-5 sm:p-6">
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/15 text-lg">
+                      💎
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-semibold text-emerald-300">
+                        {t("payment.upgradeTitle")}
+                      </h3>
+                      <p className="mt-1 text-sm text-zinc-400">
+                        {t("payment.upgradeDescription")}
+                      </p>
+                      <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                        <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
+                          <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+                            {t("payment.monthly")}
                           </div>
-                          <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-center">
-                            <div className="text-[10px] uppercase tracking-wide text-emerald-300">
-                              {t("payment.quarterly")}
-                            </div>
-                            <div className="mt-1 text-sm font-semibold text-white">NT$ 249</div>
-                          </div>
-                          <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
-                            <div className="text-[10px] uppercase tracking-wide text-zinc-500">
-                              {t("payment.yearly")}
-                            </div>
-                            <div className="mt-1 text-sm font-semibold text-white">NT$ 899</div>
-                          </div>
+                          <div className="mt-1 text-sm font-semibold text-white">NT$ 99</div>
                         </div>
-                        <button
-                          onClick={() => setShowPricingModal(true)}
-                          disabled={paymentLoading || selectedCount === 0}
-                          className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-emerald-400 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          {paymentLoading ? t("payment.processing") : t("payment.viewPlans")}
-                        </button>
+                        <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-center">
+                          <div className="text-[10px] uppercase tracking-wide text-emerald-300">
+                            {t("payment.quarterly")}
+                          </div>
+                          <div className="mt-1 text-sm font-semibold text-white">NT$ 249</div>
+                        </div>
+                        <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
+                          <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+                            {t("payment.yearly")}
+                          </div>
+                          <div className="mt-1 text-sm font-semibold text-white">NT$ 899</div>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => setShowPricingModal(true)}
+                        disabled={paymentLoading || selectedCount === 0}
+                        className="mt-4 flex h-12 w-full items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-400/10 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        {paymentLoading ? t("payment.processing") : t("payment.viewPlans")}
+                      </button>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleDownload}
-                    disabled={downloading || selectedCount === 0}
-                    className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {downloading
-                      ? t("download.downloading")
-                      : t("download.freeDownloadCount", { count: selectedCount })}
-                  </button>
-                  <p className="text-center text-xs text-zinc-500">
-                    {t("payment.freeHint")}
-                  </p>
                 </div>
-              )}
 
-              {jobId && (
-                <DownloadProgress
-                  status={jobStatus}
-                  progress={jobProgress}
-                  total={jobTotal}
-                  downloadReady={downloadReady}
-                  jobId={jobId}
-                  error={jobError}
-                  onReset={handleReset}
-                />
-              )}
+                <p className="text-center text-xs text-zinc-500">
+                  {t("payment.freeHint")}
+                </p>
+              </div>
             </div>
           )}
         </section>
