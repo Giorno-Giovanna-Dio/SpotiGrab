@@ -7,7 +7,7 @@ import {
   getRequestOrigin,
 } from "@/lib/ecpay";
 import { createOrder } from "@/lib/orders";
-import { SUBSCRIPTION_PLANS } from "@/lib/subscription";
+import { getPayPerTrackTotal, getPlan } from "@/lib/pricing";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "缺少方案 ID" }, { status: 400 });
     }
 
-    const plan = SUBSCRIPTION_PLANS[planId];
+    const plan = getPlan(planId);
     if (!plan) {
       return NextResponse.json({ error: "無效的方案" }, { status: 400 });
     }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       if (!trackCount || trackCount <= 0) {
         return NextResponse.json({ error: "無效的歌曲數量" }, { status: 400 });
       }
-      amount = plan.price * trackCount;
+      amount = getPayPerTrackTotal(trackCount);
       itemName = `SpotiGrab 單曲下載 ${trackCount} 首`;
     } else {
       amount = plan.price;

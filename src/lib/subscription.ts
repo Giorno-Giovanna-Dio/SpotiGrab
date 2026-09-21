@@ -1,68 +1,4 @@
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price: number;
-  duration: number;
-  features: string[];
-  downloadLimit: number | "unlimited";
-}
-
-export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
-  free: {
-    id: "free",
-    name: "免費方案",
-    price: 0,
-    duration: 0,
-    features: ["每日 3 首下載限額", "標準音質", "廣告支持"],
-    downloadLimit: 3,
-  },
-  monthly: {
-    id: "monthly",
-    name: "月費會員",
-    price: 99,
-    duration: 30,
-    features: ["無限下載", "高音質 MP3", "批次下載", "無廣告", "優先客服"],
-    downloadLimit: "unlimited",
-  },
-  quarterly: {
-    id: "quarterly",
-    name: "季度會員",
-    price: 249,
-    duration: 90,
-    features: [
-      "無限下載",
-      "高音質 MP3",
-      "批次下載",
-      "無廣告",
-      "優先客服",
-      "省 16%（原價 NT$ 297）",
-    ],
-    downloadLimit: "unlimited",
-  },
-  yearly: {
-    id: "yearly",
-    name: "年度會員",
-    price: 899,
-    duration: 365,
-    features: [
-      "無限下載",
-      "高音質 MP3",
-      "批次下載",
-      "無廣告",
-      "優先客服",
-      "省 25%（原價 NT$ 1,188）",
-    ],
-    downloadLimit: "unlimited",
-  },
-  payPerTrack: {
-    id: "payPerTrack",
-    name: "單曲付費",
-    price: 10,
-    duration: 0,
-    features: ["單次下載", "高音質 MP3", "不限時效"],
-    downloadLimit: 0,
-  },
-};
+import { FREE_DAILY_DOWNLOAD_LIMIT, getPlan } from "@/lib/pricing";
 
 export interface UserSubscription {
   userId: string;
@@ -80,7 +16,7 @@ export function createSubscription(
   planId: string,
   autoRenew: boolean = false
 ): UserSubscription {
-  const plan = SUBSCRIPTION_PLANS[planId];
+  const plan = getPlan(planId);
   if (!plan) {
     throw new Error("無效的訂閱方案");
   }
@@ -131,12 +67,12 @@ export function canDownload(userId: string, trackCount: number = 1): {
 
   if (!subscription || subscription.planId === "free") {
     const dailyDownloads = getDailyDownloadCount(userId);
-    const remaining = 3 - dailyDownloads;
+    const remaining = FREE_DAILY_DOWNLOAD_LIMIT - dailyDownloads;
 
-    if (dailyDownloads + trackCount > 3) {
+    if (dailyDownloads + trackCount > FREE_DAILY_DOWNLOAD_LIMIT) {
       return {
         allowed: false,
-        reason: "已達每日免費下載限額（3 首）",
+        reason: `已達每日免費下載限額（${FREE_DAILY_DOWNLOAD_LIMIT} 首）`,
         remainingDownloads: Math.max(0, remaining),
       };
     }
@@ -152,11 +88,6 @@ export function canDownload(userId: string, trackCount: number = 1): {
       allowed: false,
       reason: "訂閱已過期，請續訂以繼續使用",
     };
-  }
-
-  const plan = SUBSCRIPTION_PLANS[subscription.planId];
-  if (plan.downloadLimit === "unlimited") {
-    return { allowed: true };
   }
 
   return { allowed: true };
