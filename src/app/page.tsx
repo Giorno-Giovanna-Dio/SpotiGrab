@@ -5,8 +5,16 @@ import { useTranslations } from "next-intl";
 import PlaylistInput from "@/components/PlaylistInput";
 import TrackList from "@/components/TrackList";
 import DownloadProgress from "@/components/DownloadProgress";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import PricingModal from "@/components/PricingModal";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
+import { startCheckout } from "@/lib/checkout";
+import {
+  FEATURED_PLAN_ID,
+  SUBSCRIPTION_PLANS,
+  SUBSCRIPTION_PLAN_IDS,
+  formatAmount,
+} from "@/lib/pricing";
 import type { TrackWithMatch } from "@/lib/types";
 
 interface PlaylistData {
@@ -167,30 +175,17 @@ export default function Home() {
 
     try {
       const selectedTracks = tracks.filter((track) => track.selected);
-      const trackIds = selectedTracks.map((track) => track.id);
 
-      const res = await fetch("/api/payment/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planId,
-          trackCount: trackCount || selectedTracks.length,
-          tracks: trackIds,
-        }),
+      const failure = await startCheckout({
+        planId,
+        trackCount: trackCount || selectedTracks.length,
+        tracks: selectedTracks.map((track) => track.id),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? t("errors.paymentFailed"));
-      }
-
-      const html = await res.text();
-      const newWindow = window.open("", "_blank");
-      if (newWindow) {
-        newWindow.document.write(html);
-        newWindow.document.close();
-      } else {
-        throw new Error(t("errors.popupBlocked"));
+      if (failure?.reason === "popup") {
+        setError(t("errors.popupBlocked"));
+      } else if (failure) {
+        setError(failure.message ?? t("errors.paymentFailed"));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.paymentFailed"));
@@ -218,30 +213,7 @@ export default function Home() {
         <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" />
       </div>
 
-      <header className="relative z-10 border-b border-white/[0.06]">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <a href="#" className="flex items-center gap-2.5" aria-label={t("home.homeAriaLabel")}>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-400 text-emerald-950 shadow-lg shadow-emerald-500/15">
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 8.5a11 11 0 0 1 12 0M7.5 12a8 8 0 0 1 9 0M9 15.5a5 5 0 0 1 6 0" />
-              </svg>
-            </span>
-            <span className="text-base font-semibold tracking-tight">
-              Spoti<span className="text-emerald-400">Grab</span>
-            </span>
-          </a>
-          <div className="flex items-center gap-4">
-            <div className="hidden items-center gap-2 text-xs text-zinc-500 sm:flex">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-              </span>
-              {t("home.serviceStatus")}
-            </div>
-            <LanguageSwitcher />
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="relative z-10">
         <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-16 pt-14 sm:px-8 md:pt-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pb-24">
@@ -399,24 +371,30 @@ export default function Home() {
                           {t("payment.upgradeDescription")}
                         </p>
                         <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-                          <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
-                            <div className="text-[10px] uppercase tracking-wide text-zinc-500">
-                              {t("payment.monthly")}
-                            </div>
-                            <div className="mt-1 text-sm font-semibold text-white">NT$ 99</div>
-                          </div>
-                          <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-center">
-                            <div className="text-[10px] uppercase tracking-wide text-emerald-300">
-                              {t("payment.quarterly")}
-                            </div>
-                            <div className="mt-1 text-sm font-semibold text-white">NT$ 249</div>
-                          </div>
-                          <div className="rounded-xl border border-white/8 bg-black/20 p-3 text-center">
-                            <div className="text-[10px] uppercase tracking-wide text-zinc-500">
-                              {t("payment.yearly")}
-                            </div>
-                            <div className="mt-1 text-sm font-semibold text-white">NT$ 899</div>
-                          </div>
+                          {SUBSCRIPTION_PLAN_IDS.map((planId) => {
+                            const featured = planId === FEATURED_PLAN_ID;
+                            return (
+                              <div
+                                key={planId}
+                                className={`rounded-xl border p-3 text-center ${
+                                  featured
+                                    ? "border-emerald-400/30 bg-emerald-400/10"
+                                    : "border-white/8 bg-black/20"
+                                }`}
+                              >
+                                <div
+                                  className={`text-[10px] uppercase tracking-wide ${
+                                    featured ? "text-emerald-300" : "text-zinc-500"
+                                  }`}
+                                >
+                                  {t(`payment.${planId}`)}
+                                </div>
+                                <div className="mt-1 text-sm font-semibold text-white">
+                                  NT$ {formatAmount(SUBSCRIPTION_PLANS[planId].price)}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                         <button
                           onClick={() => setShowPricingModal(true)}
@@ -460,12 +438,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="relative z-10 border-t border-white/[0.06]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-7 text-xs text-zinc-600 sm:px-8 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} SpotiGrab</p>
-          <p>{t("home.footer")}</p>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <PricingModal
         isOpen={showPricingModal}

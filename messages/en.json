@@ -77,6 +77,114 @@
     "reset": "Start Over",
     "freeDownloadCount": "Free download {count} songs"
   },
+  "nav": {
+    "home": "Home",
+    "pricing": "Pricing"
+  },
+  "pricing": {
+    "metaTitle": "Pricing — SpotiGrab",
+    "metaDescription": "SpotiGrab offers a free plan, monthly/quarterly/yearly subscriptions, and pay-per-track downloads. Pick the plan that fits you.",
+    "badge": "Pricing",
+    "title": "Pick the plan that fits you",
+    "description": "The free plan covers 3 downloads per day. Subscribe for unlimited downloads and high-quality MP3, or pay per track if you only need a few songs.",
+    "subscriptionsTitle": "Subscriptions",
+    "subscriptionsDescription": "Every subscription includes the same features — longer terms simply cost less per month.",
+    "bestValue": "Best value",
+    "period": {
+      "monthly": "/ month",
+      "quarterly": "/ quarter",
+      "yearly": "/ year",
+      "payPerTrack": "/ track"
+    },
+    "monthlyAverage": "NT$ {price} per month on average",
+    "savings": "Save NT$ {amount} ({percent}% off, regular NT$ {listPrice})",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "tagline": "Enough for backing up a few songs now and then",
+        "cta": "Start for free"
+      },
+      "monthly": {
+        "name": "Monthly",
+        "tagline": "A great starting point, cancel anytime",
+        "cta": "Choose monthly"
+      },
+      "quarterly": {
+        "name": "Quarterly",
+        "tagline": "Three months of unlimited downloads, best value",
+        "cta": "Choose quarterly"
+      },
+      "yearly": {
+        "name": "Yearly",
+        "tagline": "The best option for long-term listeners",
+        "cta": "Choose yearly"
+      },
+      "payPerTrack": {
+        "name": "Pay per track",
+        "tagline": "Pay only for the songs you download, no subscription",
+        "cta": "Pay once"
+      }
+    },
+    "features": {
+      "dailyLimit": "{count} downloads per day",
+      "standardQuality": "Standard quality (128kbps)",
+      "adSupported": "Ad-supported",
+      "unlimitedDownloads": "Unlimited downloads",
+      "highQualityMp3": "High-quality MP3 (320kbps)",
+      "batchDownload": "Batch downloads",
+      "noAds": "No ads",
+      "prioritySupport": "Priority support",
+      "singleDownload": "One-time payment, download right away",
+      "noExpiry": "No expiry"
+    },
+    "payPerTrack": {
+      "selectedTracks": "{count} songs selected",
+      "unitPrice": "NT$ {price} / track",
+      "selectTracks": "Select songs on the home page"
+    },
+    "compare": {
+      "title": "Plan comparison",
+      "planColumn": "Plan",
+      "priceColumn": "Price",
+      "monthlyAverageColumn": "Monthly average",
+      "dailyLimitColumn": "Daily downloads",
+      "qualityColumn": "Quality",
+      "savingsColumn": "Savings",
+      "unlimited": "Unlimited",
+      "onDemand": "Pay as you go",
+      "tracksPerDay": "{count} songs",
+      "standardQuality": "128kbps",
+      "highQuality": "320kbps",
+      "savingsValue": "{percent}%",
+      "none": "—"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "Can I cancel anytime?",
+      "a1": "Yes. No subscription is locked in, and you keep access until the end of the current term.",
+      "q2": "Can I upgrade or downgrade?",
+      "a2": "Yes. Upgrades apply immediately; downgrades take effect once the current term ends.",
+      "q3": "Which payment methods are supported?",
+      "a3": "Credit card, ATM transfer, and convenience-store code or barcode, handled by ECPay.",
+      "q4": "What audio quality do I get?",
+      "a4": "Paid plans deliver 320kbps MP3, while the free plan uses 128kbps standard quality.",
+      "q5": "What are the free plan limits?",
+      "a5": "Up to 3 downloads per day, with no signup required.",
+      "q6": "Do subscribers still pay per track?",
+      "a6": "No. Subscriptions include unlimited downloads with no extra charges."
+    },
+    "paymentMethods": "All plans support credit card, ATM transfer, and convenience-store payments",
+    "noContract": "No contract — cancel your subscription anytime",
+    "ctaTitle": "Ready to organize your playlist?",
+    "ctaDescription": "Paste a Spotify playlist link and try it for free first.",
+    "ctaButton": "Start converting a playlist",
+    "modalTitle": "Choose your plan",
+    "modalDescription": "Pick the download plan that fits you best",
+    "modalClose": "Close",
+    "modalFullPricing": "See the full plan comparison",
+    "orPayOnce": "Or pay once",
+    "processing": "Processing..."
+  },
   "payment": {
     "upgradeTitle": "Go premium for unlimited downloads",
     "upgradeDescription": "Choose monthly, quarterly, or yearly — or pay per track.",

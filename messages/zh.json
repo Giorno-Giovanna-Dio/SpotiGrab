@@ -77,6 +77,114 @@
     "reset": "重新開始",
     "freeDownloadCount": "免費下載 {count} 首歌曲"
   },
+  "nav": {
+    "home": "首頁",
+    "pricing": "定價"
+  },
+  "pricing": {
+    "metaTitle": "定價方案 — SpotiGrab",
+    "metaDescription": "SpotiGrab 提供免費方案、月費／季度／年度訂閱與單曲付費，選擇最適合你的下載方案。",
+    "badge": "定價方案",
+    "title": "選擇最適合你的方案",
+    "description": "免費方案每日可下載 3 首。想要無限下載與高音質 MP3，可以選擇訂閱；只需要幾首歌，也能單曲付費。",
+    "subscriptionsTitle": "訂閱方案",
+    "subscriptionsDescription": "所有訂閱方案功能相同，期間越長越划算。",
+    "bestValue": "最超值",
+    "period": {
+      "monthly": "/ 月",
+      "quarterly": "/ 季",
+      "yearly": "/ 年",
+      "payPerTrack": "/ 首"
+    },
+    "monthlyAverage": "平均每月 NT$ {price}",
+    "savings": "省 NT$ {amount}（{percent}% off，原價 NT$ {listPrice}）",
+    "plans": {
+      "free": {
+        "name": "免費方案",
+        "tagline": "偶爾備份幾首歌就夠用",
+        "cta": "免費開始使用"
+      },
+      "monthly": {
+        "name": "月費會員",
+        "tagline": "完美的入門方案，隨時可取消",
+        "cta": "選擇月費方案"
+      },
+      "quarterly": {
+        "name": "季度會員",
+        "tagline": "三個月無限下載，最划算的選擇",
+        "cta": "選擇季度方案"
+      },
+      "yearly": {
+        "name": "年度會員",
+        "tagline": "長期使用者的最佳選擇",
+        "cta": "選擇年度方案"
+      },
+      "payPerTrack": {
+        "name": "單曲付費",
+        "tagline": "只付這次要下載的歌曲，不需訂閱",
+        "cta": "單次付款"
+      }
+    },
+    "features": {
+      "dailyLimit": "每日 {count} 首下載限額",
+      "standardQuality": "標準音質（128kbps）",
+      "adSupported": "廣告支持",
+      "unlimitedDownloads": "無限下載",
+      "highQualityMp3": "高音質 MP3（320kbps）",
+      "batchDownload": "批次下載",
+      "noAds": "無廣告",
+      "prioritySupport": "優先客服",
+      "singleDownload": "單次付款，立即下載",
+      "noExpiry": "不限時效"
+    },
+    "payPerTrack": {
+      "selectedTracks": "已選 {count} 首歌曲",
+      "unitPrice": "NT$ {price} / 首",
+      "selectTracks": "回首頁選擇歌曲"
+    },
+    "compare": {
+      "title": "方案比較",
+      "planColumn": "方案",
+      "priceColumn": "價格",
+      "monthlyAverageColumn": "月均價格",
+      "dailyLimitColumn": "每日下載",
+      "qualityColumn": "音質",
+      "savingsColumn": "節省",
+      "unlimited": "無限",
+      "onDemand": "按需付費",
+      "tracksPerDay": "{count} 首",
+      "standardQuality": "128kbps",
+      "highQuality": "320kbps",
+      "savingsValue": "{percent}%",
+      "none": "—"
+    },
+    "faq": {
+      "title": "常見問題",
+      "q1": "訂閱可以隨時取消嗎？",
+      "a1": "可以。所有訂閱方案都不綁約，取消後仍可使用到訂閱期結束。",
+      "q2": "可以升級或降級方案嗎？",
+      "a2": "可以。升級會立即生效，降級則在目前訂閱期結束後生效。",
+      "q3": "有哪些付款方式？",
+      "a3": "透過綠界 ECPay 支援信用卡、ATM 轉帳、超商代碼與超商條碼。",
+      "q4": "下載的音質如何？",
+      "a4": "付費方案提供 320kbps 高音質 MP3，免費方案為 128kbps 標準音質。",
+      "q5": "免費方案有什麼限制？",
+      "a5": "每日最多下載 3 首歌曲，無需註冊即可使用。",
+      "q6": "訂閱後還需要付單曲費用嗎？",
+      "a6": "不需要。訂閱期間內可無限下載，不會再額外收費。"
+    },
+    "paymentMethods": "所有方案皆支援信用卡、ATM 轉帳與超商付款",
+    "noContract": "訂閱不綁約，可隨時取消",
+    "ctaTitle": "準備好整理你的播放清單了嗎？",
+    "ctaDescription": "貼上 Spotify 播放清單連結，先免費試試看。",
+    "ctaButton": "開始轉換播放清單",
+    "modalTitle": "選擇您的方案",
+    "modalDescription": "選擇最適合您的下載方案",
+    "modalClose": "關閉",
+    "modalFullPricing": "查看完整方案比較",
+    "orPayOnce": "或選擇單次付費",
+    "processing": "處理中..."
+  },
   "payment": {
     "upgradeTitle": "升級會員，無限下載",
     "upgradeDescription": "月費、季度或年度方案，也支援單曲付費。",
