@@ -1,70 +1,85 @@
-# Vercel 部署與 404 排除
+# 把正式站改掛到 spotigrab
 
-## 你現在看到的 404 是什麼
+你的判斷是對的：太早把未完成的專案掛上 Vercel，後來又新增 `spotigrab`，兩個專案搶同一個 GitHub repo，正式網域還留在失敗的舊專案上。
 
-`This page doesn’t exist` + `404 NOT_FOUND` + `hkg1::...` 是 **Vercel 平台層的 404**，不是網頁自己畫出來的錯誤頁。
+這件事 **沒辦法從程式碼修好**。Vercel 網域綁在 Dashboard，必須用你的帳號改。下面是最短路徑。
 
-我實際打過你的正式網址：
+## 現況（2026-09-21 實測）
 
-- `https://spotify-music-downloader-khaki.vercel.app` **整站（含首頁）都是 404**
-- 付款 Preview 網址會被轉去 `vercel.com/login`（Vercel SSO 保護）
+| 網址 | 狀態 |
+|------|------|
+| `https://spotify-music-downloader-khaki.vercel.app` | 整站 404。這是舊專案 `spotify-music-downloader` 的正式別名，已沒有有效部署。**不能搬到 spotigrab。** |
+| `https://spotigrab-davids-projects-57841fbe.vercel.app` | `spotigrab` 正式站，部署是成功的，但開了 Vercel Authentication，未登入會被轉去登入頁。 |
+| `https://spotigrab-git-cursor-ecpay-paym-bf1eb4-davids-projects-57841fbe.vercel.app` | 付款 PR 的 Preview，同樣被登入牆擋住。 |
 
-所以綠界回調或 ngrok 都開不起來：對方打進來的網址要嘛不存在，要嘛要先登入 Vercel。
+`*.vercel.app` 系統網域跟專案綁死。`*-khaki.vercel.app` 屬於舊專案，加到 `spotigrab` 不會成功。正式站請改用 `spotigrab` 自己的網址。
 
-**本地 ngrok 不需要再開。** 金流回調請走公開的 Vercel 網址。
+## 請依序做這 5 步
 
-## 真正的原因
+### 1. 打開 spotigrab 專案
 
-GitHub 上這個 repo 連了 **兩個 Vercel 專案**：
+https://vercel.com/davids-projects-57841fbe/spotigrab
 
-| 專案 | 狀態 | 結果 |
-|------|------|------|
-| `spotify-music-downloader` | Error | 正式網域 `*.vercel.app` 變成整站 404 |
-| `spotigrab` | Ready | Preview 有部署，但開了 Deployment Protection，訪客 / 綠界打不進去 |
+確認最新 Production 是 Ready（main 分支）。
 
-另外，付款路由原本只在這個 PR 分支。若環境變數指到正式網域的 `/payment/success`，而正式站還是舊的 `main`（或部署失敗），也會 404。
+### 2. 關掉登入牆（這步不做，外人 / 綠界永遠進不去）
 
-## 請在 Vercel 做這三件事
+1. 進入 **Settings → Deployment Protection**
+2. Protection 選 **None**（或至少不要保護 Production）
+3. 儲存
 
-### 1. 只用一個專案
+然後用無痕視窗打開：
 
-建議只留 `spotigrab`（或只留有自訂網域的那一個），另一個專案取消 Git 連動，避免兩個專案搶同一個 repo。
+https://spotigrab-davids-projects-57841fbe.vercel.app
 
-### 2. 關掉 Preview 的登入牆
+應該要看到 SpotiGrab 首頁，而不是 Vercel 登入或 404。
 
-`Project Settings → Deployment Protection`
+### 3. 把 Git 連動只留給 spotigrab
 
-- Production 可維持公開
-- Preview 若要給綠界測試，請關掉 Standard Protection，或設定 Bypass
-- 否則綠界、瀏覽器未登入都會被轉去 Vercel 登入頁，看起來像壞掉
+舊專案：https://vercel.com/davids-projects-57841fbe/spotify-music-downloader
 
-### 3. 環境變數（Production + Preview 都要）
+1. **Settings → Git → Disconnect**
+2. 之後可直接 **Delete Project**（`khaki` 網址本來就 404，刪了沒差）
+
+只讓 `spotigrab` 連 `Giorno-Giovanna-Dio/SpotiGrab`。
+
+### 4. 環境變數加在 spotigrab
+
+**Settings → Environment Variables**，Production 與 Preview 都加：
 
 ```
 ECPAY_MERCHANT_ID=3002607
 ECPAY_HASH_KEY=pwFHCqoQZGmho4w6
 ECPAY_HASH_IV=EkRm7iFT261dpevs
 ECPAY_API_URL=https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5
-SPOTIFY_CLIENT_ID=你的 Spotify Client ID
-SPOTIFY_CLIENT_SECRET=你的 Spotify Client Secret
+SPOTIFY_CLIENT_ID=你的 ID
+SPOTIFY_CLIENT_SECRET=你的 Secret
 ```
 
-回調網址 **可以不填**。程式會用目前網站的 origin 自動組：
+回調網址不用填，程式會用目前網域自動組。填完後 **Deployments → Redeploy**。
 
-- `/api/payment/callback`（綠界伺服器通知，POST）
-- `/api/payment/result`（付款後瀏覽器回來，POST → 轉到成功頁）
-- `/payment/success`（結果頁）
+### 5. 之後用這個當正式網址
 
-填完後 **Redeploy**。
+```
+https://spotigrab-davids-projects-57841fbe.vercel.app
+```
 
-## 測試信用卡
+GitHub repo 的 Website 請改成上面這個，不要再用 `spotify-music-downloader-khaki.vercel.app`。
 
-- 卡號：`4311-9522-2222-2222`
-- 有效期限：任意未來月份
-- 安全碼：任意 3 碼
+若想要比較好記的網址：
 
-## 怎麼確認修好
+- **Settings → General → Project Name** 可改名（之後新部署會用新的 `新名字-davids-projects-57841fbe.vercel.app`）
+- 或 **Settings → Domains** 綁自己的網域（例如 `spotigrab.com`）
 
-1. 正式網址首頁不再 404
-2. 打開 `/payment/success` 會看到付款結果頁（沒帶訂單編號時會顯示錯誤，但不是 Vercel 404）
-3. 打開 `/api/payment/callback` 會看到純文字說明（不是 404）
+不要再嘗試把 `khaki` 那條加進 spotigrab。
+
+## 付款功能什麼時候會出現在正式站
+
+`spotigrab` 正式站跟的是 `main`。金流在 PR #4 分支。
+
+- 現在關掉登入牆：正式站會是 **還沒有付款** 的 main 版（i18n 播放清單工具）
+- 要把訂閱 / 綠界放到正式站：把 PR #4 merge 進 `main`，Vercel 會自動 Production Deploy
+
+測金流可先用 Preview（登入牆關掉之後）：
+
+https://spotigrab-git-cursor-ecpay-paym-bf1eb4-davids-projects-57841fbe.vercel.app
