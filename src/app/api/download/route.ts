@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createJob, runDownloadJob } from "@/lib/jobs";
 import type { TrackWithMatch } from "@/lib/types";
 
-export const maxDuration = 600;
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {
